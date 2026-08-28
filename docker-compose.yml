@@ -1,0 +1,22 @@
+services:
+  # PostgreSQL database for LedgerFlow
+  postgres:
+    image: postgres:16-alpine
+    container_name: ledgerflow-postgres
+    environment:
+      POSTGRES_DB: ledgerflow           # Database name
+      POSTGRES_USER: ledgerflow         # Username
+      POSTGRES_PASSWORD: ledgerflow123  # Password (fine for local dev only!)
+    ports:
+      - "5433:5432"                     # Maps container port 5432 to your machine's port 5433 (avoids conflict with local PostgreSQL)
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Persists data across container restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledgerflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Named volume for persistent PostgreSQL data
+volumes:
+  pgdata:

@@ -1,0 +1,36 @@
+# =============================================================
+# LedgerFlow Application Configuration
+# =============================================================
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: LedgerFlow
+
+  # ----- Database (PostgreSQL) -----
+  datasource:
+    url: jdbc:postgresql://localhost:5433/ledgerflow
+    username: ledgerflow
+    password: ledgerflow123
+    driver-class-name: org.postgresql.Driver
+
+  # ----- JPA / Hibernate -----
+  jpa:
+    hibernate:
+      # 'update' auto-creates/updates tables based on entity classes.
+      # Good for development. In production, use 'validate' + migration tool.
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# ----- Logging -----
+logging:
+  level:
+    root: INFO
+    com.ledgerflow: DEBUG
+    org.hibernate.SQL: DEBUG
