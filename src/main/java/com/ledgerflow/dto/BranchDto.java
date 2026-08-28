@@ -3,56 +3,35 @@ package com.ledgerflow.dto;
 import com.ledgerflow.entity.Branch;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
-/**
- * Data Transfer Objects for Branch.
- *
- * WHY DTOs? We never expose JPA entities directly over the API because:
- *   1. Entities have lazy-loaded collections that cause serialization problems
- *   2. We'd accidentally expose internal fields (e.g., DB IDs of related objects)
- *   3. We want to control exactly what the API input/output looks like
- *   4. Input validation belongs on the DTO, not the entity
- *
- * This file contains nested static classes — one per "shape" of data.
- */
+/** DTOs for Branch operations. */
 public class BranchDto {
 
-    /**
-     * Request DTO: used when creating a new branch (POST /api/branches).
-     * Contains only the fields the client needs to provide.
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
+    /** Request body for POST /api/branches */
     public static class CreateRequest {
-
         @NotBlank(message = "Branch name is required")
-        @Size(max = 100, message = "Branch name must not exceed 100 characters")
+        @Size(max = 100)
         private String name;
 
-        @Size(max = 255, message = "Location must not exceed 255 characters")
+        @Size(max = 255)
         private String location;
 
         @NotBlank(message = "Branch code is required")
-        @Size(max = 20, message = "Branch code must not exceed 20 characters")
+        @Size(max = 20)
         private String branchCode;
+
+        public CreateRequest() {}
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getLocation() { return location; }
+        public void setLocation(String location) { this.location = location; }
+        public String getBranchCode() { return branchCode; }
+        public void setBranchCode(String branchCode) { this.branchCode = branchCode; }
     }
 
-    /**
-     * Response DTO: returned when reading branch data (GET /api/branches).
-     * Contains everything we want to expose about a branch.
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
+    /** Response body for branch read operations. */
     public static class Response {
         private Long id;
         private String name;
@@ -62,17 +41,26 @@ public class BranchDto {
         private Instant createdAt;
         private Instant updatedAt;
 
-        /** Convert a Branch entity to a Response DTO. */
+        public Response() {}
+
         public static Response from(Branch branch) {
-            return Response.builder()
-                    .id(branch.getId())
-                    .name(branch.getName())
-                    .location(branch.getLocation())
-                    .branchCode(branch.getBranchCode())
-                    .active(branch.isActive())
-                    .createdAt(branch.getCreatedAt())
-                    .updatedAt(branch.getUpdatedAt())
-                    .build();
+            Response r = new Response();
+            r.id = branch.getId();
+            r.name = branch.getName();
+            r.location = branch.getLocation();
+            r.branchCode = branch.getBranchCode();
+            r.active = branch.isActive();
+            r.createdAt = branch.getCreatedAt();
+            r.updatedAt = branch.getUpdatedAt();
+            return r;
         }
+
+        public Long getId() { return id; }
+        public String getName() { return name; }
+        public String getLocation() { return location; }
+        public String getBranchCode() { return branchCode; }
+        public boolean isActive() { return active; }
+        public Instant getCreatedAt() { return createdAt; }
+        public Instant getUpdatedAt() { return updatedAt; }
     }
 }

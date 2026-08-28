@@ -1,38 +1,12 @@
 package com.ledgerflow.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.Instant;
 
 /**
- * Generic API response wrapper.
- *
- * ALL API responses are wrapped in this object so the frontend
- * always gets a consistent shape:
- *
- * Success:
- * {
- *   "success": true,
- *   "message": "Account created successfully",
- *   "data": { ...account data... },
- *   "timestamp": "2026-08-28T..."
- * }
- *
- * Error (handled by GlobalExceptionHandler):
- * {
- *   "success": false,
- *   "message": "Account not found with id: 999",
- *   "data": null,
- *   "timestamp": "2026-08-28T..."
- * }
+ * Generic wrapper for all API responses.
+ * Every endpoint returns this shape:
+ * { "success": true/false, "message": "...", "data": {...}, "timestamp": "..." }
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class ApiResponse<T> {
 
     private boolean success;
@@ -40,23 +14,25 @@ public class ApiResponse<T> {
     private T data;
     private Instant timestamp;
 
-    /** Convenience factory for success responses. */
-    public static <T> ApiResponse<T> success(String message, T data) {
-        return ApiResponse.<T>builder()
-                .success(true)
-                .message(message)
-                .data(data)
-                .timestamp(Instant.now())
-                .build();
+    public ApiResponse() {}
+
+    public ApiResponse(boolean success, String message, T data, Instant timestamp) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.timestamp = timestamp;
     }
 
-    /** Convenience factory for error responses. */
-    public static <T> ApiResponse<T> error(String message) {
-        return ApiResponse.<T>builder()
-                .success(false)
-                .message(message)
-                .data(null)
-                .timestamp(Instant.now())
-                .build();
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(true, message, data, Instant.now());
     }
+
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null, Instant.now());
+    }
+
+    public boolean isSuccess() { return success; }
+    public String getMessage() { return message; }
+    public T getData() { return data; }
+    public Instant getTimestamp() { return timestamp; }
 }
