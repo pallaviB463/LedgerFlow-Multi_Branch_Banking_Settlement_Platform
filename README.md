@@ -62,7 +62,7 @@ Here are the key REST API endpoints your frontend will need to interact with:
 *   `GET /api/reports/trial-balance` - Get the current trial balance of the entire bank.
 *   `GET /api/reports/statement/{accountNumber}` - Get the detailed statement for an account.
 
-## 👩‍💻 Next Steps for Frontend Teammate
+## 👩‍💻 Next Steps 
 
 Your focus will be on building the user interface and calling the APIs listed above. You can start by:
 1.  Building a dashboard to view the Trial Balance (`/api/reports/trial-balance`).
