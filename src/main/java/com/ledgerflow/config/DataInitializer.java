@@ -43,6 +43,7 @@ public class DataInitializer implements CommandLineRunner {
         Branch downtown = branchRepository.save(new Branch("Downtown Branch", "123 Main Street, City Center", "LFLW001"));
         Branch airport  = branchRepository.save(new Branch("Airport Branch", "Terminal 2, International Airport", "LFLW002"));
         Branch tech     = branchRepository.save(new Branch("Tech Park Branch", "Block A, Tech Park, Whitefield", "LFLW003"));
+        Branch system   = branchRepository.save(new Branch("System Clearing", "Internal", "SYS0000"));
 
         log.info("Created {} branches", branchRepository.count());
 
@@ -51,6 +52,9 @@ public class DataInitializer implements CommandLineRunner {
         accountRepository.save(new Account("ACC-10003", "Carol Nair",   Account.AccountType.CURRENT,  new BigDecimal("100000.00"), airport));
         accountRepository.save(new Account("ACC-10004", "David Reddy",  Account.AccountType.SAVINGS,  new BigDecimal("75000.00"),  tech));
         accountRepository.save(new Account("ACC-10005", "Eve Patel",    Account.AccountType.CURRENT,  new BigDecimal("200000.00"), tech));
+        
+        // System clearing account for ACH and Saga pattern holding
+        accountRepository.save(new Account("ACH-CLEARING", "ACH Settlement Suspense", Account.AccountType.CURRENT, BigDecimal.ZERO, system));
 
         log.info("Created {} accounts", accountRepository.count());
         log.info("Data initialization complete.");
