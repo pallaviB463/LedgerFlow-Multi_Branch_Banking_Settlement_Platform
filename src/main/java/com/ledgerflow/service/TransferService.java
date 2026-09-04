@@ -142,7 +142,11 @@ public class TransferService {
     }
 
     private Account loadAccountOrThrow(Long id) {
-        return accountRepository.findById(id)
+        // findByIdWithLock → SELECT ... FOR UPDATE
+        // This acquires a row-level database lock.
+        // Any other transaction trying to lock the same row will WAIT here
+        // until this transaction commits or rolls back.
+        return accountRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id: " + id));
     }
 

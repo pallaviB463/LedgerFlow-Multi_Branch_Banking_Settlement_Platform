@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -25,13 +26,24 @@ public class AccountService {
     private static final Logger log = LoggerFactory.getLogger(AccountService.class);
     private final AccountRepository accountRepository;
     private final BranchRepository branchRepository;
+    private final OpeningBalanceService openingBalanceService;
     private final AtomicLong accountSequence = new AtomicLong(10000);
 
-    public AccountService(AccountRepository accountRepository, BranchRepository branchRepository) {
+    public AccountService(AccountRepository accountRepository,
+                          BranchRepository branchRepository,
+                          OpeningBalanceService openingBalanceService) {
         this.accountRepository = accountRepository;
         this.branchRepository = branchRepository;
+        this.openingBalanceService = openingBalanceService;
     }
 
+    /**
+     * Create a new account.
+     *
+     * If initialBalance > 0, an opening CREDIT ledger entry is posted
+     * so the immutable ledger reflects 100% of the account's money history
+     * from day one.
+     */
     @Transactional
     public AccountDto.Response createAccount(AccountDto.CreateRequest request) {
         Branch branch = branchRepository.findById(request.getBranchId())
@@ -46,6 +58,13 @@ public class AccountService {
         Account account = new Account(accountNumber, request.getAccountHolderName(),
                 request.getAccountType(), request.getInitialBalance(), branch);
         Account saved = accountRepository.save(account);
+
+        // Post opening balance as a ledger CREDIT if initial balance > 0
+        BigDecimal initial = request.getInitialBalance();
+        if (initial != null && initial.compareTo(BigDecimal.ZERO) > 0) {
+            openingBalanceService.postOpeningBalance(saved, initial);
+        }
+
         log.info("Created account {} for {} in branch {}", saved.getAccountNumber(), saved.getAccountHolderName(), branch.getName());
         return AccountDto.Response.from(saved);
     }
