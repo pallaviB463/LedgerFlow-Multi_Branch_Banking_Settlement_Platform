@@ -71,6 +71,8 @@ public class ConcurrencyTest {
     @Autowired private BranchRepository branchRepository;
     @Autowired private LedgerEntryRepository ledgerEntryRepository;
     @Autowired private TransactionRepository transactionRepository;
+    @Autowired private com.ledgerflow.repository.AchTransferRepository achTransferRepository;
+    @Autowired private com.ledgerflow.repository.AchBatchRepository achBatchRepository;
     @Autowired private OpeningBalanceService openingBalanceService;
 
     private Long accountAId;
@@ -90,6 +92,8 @@ public class ConcurrencyTest {
     @Transactional
     public void setUp() {
         // Clean slate
+        achTransferRepository.deleteAll();
+        achBatchRepository.deleteAll();
         ledgerEntryRepository.deleteAll();
         transactionRepository.deleteAll();
         accountRepository.deleteAll();
