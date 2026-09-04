@@ -18,6 +18,8 @@ spring:
 
   # ----- JPA / Hibernate -----
   jpa:
+    # Disable open-in-view to prevent lazy loading issues and suppress Spring warning
+    open-in-view: false
     hibernate:
       # 'update' auto-creates/updates tables based on entity classes.
       # Good for development. In production, use 'validate' + migration tool.
