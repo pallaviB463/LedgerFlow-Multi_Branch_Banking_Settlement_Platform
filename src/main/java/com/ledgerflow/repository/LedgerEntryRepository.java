@@ -46,4 +46,5 @@ public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, Long> 
             WHERE e.account.id = :accountId
             """)
     BigDecimal calculateBalanceByAccountId(@Param("accountId") Long accountId);
+    boolean existsByAccountId(Long accountId);
 }

@@ -1,3 +1,4 @@
+
 package com.ledgerflow.service;
 
 import com.ledgerflow.dto.TransferDto;
@@ -17,14 +18,14 @@ import java.util.List;
 /**
  * LedgerService — the double-entry bookkeeping engine.
  *
- * postDoubleEntry() is the ONLY method in the codebase that creates
- * ledger entries. It uses Propagation.MANDATORY to ensure it always
- * runs inside an existing transaction from the caller (TransferService).
+ * Posts balanced debit and credit entries for transfers.
  */
 @Service
 public class LedgerService {
 
-    private static final Logger log = LoggerFactory.getLogger(LedgerService.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(LedgerService.class);
+
     private final LedgerEntryRepository ledgerEntryRepository;
 
     public LedgerService(LedgerEntryRepository ledgerEntryRepository) {
@@ -32,65 +33,96 @@ public class LedgerService {
     }
 
     /**
-     * Post a balanced pair of ledger entries: one DEBIT, one CREDIT.
-     * MUST be called within an existing transaction (Propagation.MANDATORY).
+     * Post a balanced pair of ledger entries.
+     * Must be called within an existing transaction.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void postDoubleEntry(Account debitAccount, Account creditAccount,
-                                BigDecimal amount, Transaction transaction,
-                                String description) {
+    public void postDoubleEntry(
+            Account debitAccount,
+            Account creditAccount,
+            BigDecimal amount,
+            Transaction transaction,
+            String description) {
 
-        // DEBIT entry: money leaving the source account
-        BigDecimal debitRunningBalance = debitAccount.getBalance().subtract(amount);
+        BigDecimal debitRunningBalance =
+                debitAccount.getBalance().subtract(amount);
+
         LedgerEntry debitEntry = new LedgerEntry(
-                debitAccount, transaction, LedgerEntry.EntryType.DEBIT,
-                amount, debitRunningBalance, description);
+                debitAccount,
+                transaction,
+                LedgerEntry.EntryType.DEBIT,
+                amount,
+                debitRunningBalance,
+                description
+        );
+
         ledgerEntryRepository.save(debitEntry);
         debitAccount.setBalance(debitRunningBalance);
 
-        // CREDIT entry: money arriving at the destination account
-        BigDecimal creditRunningBalance = creditAccount.getBalance().add(amount);
+        BigDecimal creditRunningBalance =
+                creditAccount.getBalance().add(amount);
+
         LedgerEntry creditEntry = new LedgerEntry(
-                creditAccount, transaction, LedgerEntry.EntryType.CREDIT,
-                amount, creditRunningBalance, description);
+                creditAccount,
+                transaction,
+                LedgerEntry.EntryType.CREDIT,
+                amount,
+                creditRunningBalance,
+                description
+        );
+
         ledgerEntryRepository.save(creditEntry);
         creditAccount.setBalance(creditRunningBalance);
 
-        log.debug("Double-entry posted: DEBIT {} ={} | CREDIT {} ={}",
-                debitAccount.getAccountNumber(), debitRunningBalance,
-                creditAccount.getAccountNumber(), creditRunningBalance);
+        log.debug(
+                "Double-entry posted: DEBIT {} = {} | CREDIT {} = {}",
+                debitAccount.getAccountNumber(),
+                debitRunningBalance,
+                creditAccount.getAccountNumber(),
+                creditRunningBalance
+        );
 
-        // Invariant check
         if (debitEntry.getAmount().compareTo(creditEntry.getAmount()) != 0) {
-            throw new IllegalStateException("Double-entry invariant violated: debit="
-                    + debitEntry.getAmount() + " != credit=" + creditEntry.getAmount());
+            throw new IllegalStateException(
+                    "Double-entry invariant violated: debit="
+                            + debitEntry.getAmount()
+                            + " != credit="
+                            + creditEntry.getAmount()
+            );
         }
     }
 
     /** Get the full ledger history for an account, newest first. */
     @Transactional(readOnly = true)
     public List<TransferDto.LedgerEntryView> getAccountLedger(Long accountId) {
-        return ledgerEntryRepository.findByAccountIdOrderByPostedAtDesc(accountId)
+        return ledgerEntryRepository
+                .findByAccountIdOrderByPostedAtDesc(accountId)
                 .stream()
                 .map(entry -> {
-                    TransferDto.LedgerEntryView view = new TransferDto.LedgerEntryView();
+                    TransferDto.LedgerEntryView view =
+                            new TransferDto.LedgerEntryView();
+
                     view.setLedgerEntryId(entry.getId());
                     view.setTransactionId(entry.getTransaction().getId());
-                    view.setReferenceNumber(entry.getTransaction().getReferenceNumber());
+                    view.setReferenceNumber(
+                            entry.getTransaction().getReferenceNumber());
                     view.setEntryType(entry.getEntryType().name());
                     view.setAmount(entry.getAmount());
                     view.setRunningBalance(entry.getRunningBalance());
                     view.setDescription(entry.getDescription());
                     view.setPostedAt(entry.getPostedAt());
+
                     return view;
                 })
                 .toList();
     }
 
-    /** Recalculate true balance from the immutable ledger. */
+    /** Recalculate balance from ledger entries. */
     @Transactional(readOnly = true)
     public BigDecimal calculateLedgerBalance(Long accountId) {
-        BigDecimal balance = ledgerEntryRepository.calculateBalanceByAccountId(accountId);
+        BigDecimal balance =
+                ledgerEntryRepository.calculateBalanceByAccountId(accountId);
+
         return balance != null ? balance : BigDecimal.ZERO;
     }
 }

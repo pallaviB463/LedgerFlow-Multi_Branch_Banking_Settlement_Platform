@@ -130,7 +130,9 @@ public class TransferService {
 
     @Transactional(readOnly = true)
     public TransferDto.AccountLedgerResponse getAccountLedger(Long accountId) {
-        Account account = loadAccountOrThrow(accountId);
+        Account account = accountRepository.findById(accountId)
+        .orElseThrow(() -> new ResourceNotFoundException(
+                "Account not found with id: " + accountId));
         TransferDto.AccountLedgerResponse resp = new TransferDto.AccountLedgerResponse();
         resp.setAccountId(account.getId());
         resp.setAccountNumber(account.getAccountNumber());
