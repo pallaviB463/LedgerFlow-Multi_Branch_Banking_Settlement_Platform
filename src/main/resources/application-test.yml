@@ -2,6 +2,7 @@
 # LedgerFlow Test Configuration
 # =============================================================
 # Uses H2 in-memory database so tests run without Docker/PostgreSQL.
+# Excludes MongoDB so tests run without live Mongo daemon.
 
 spring:
   datasource:
@@ -17,6 +18,18 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+
+  # Disable MongoDB in automated test profile for isolation
+  data:
+    mongodb:
+      repositories:
+        enabled: false
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
 
 logging:
   level:

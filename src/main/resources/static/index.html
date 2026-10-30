@@ -3,466 +3,1878 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LedgerFlow | Banking Operations</title>
+<title>LedgerFlow — Institutional Settlement &amp; Core Banking</title>
 <style>
-:root{color-scheme:dark;--bg:#080d17;--panel:#111a2a;--panel2:#151f32;--line:#28354d;--text:#eaf0ff;--muted:#96a5bf;--purple:#887bff;--green:#3bd6a0;--red:#ff7b91;--amber:#ffc76b}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 75% -10%,#25234b,transparent 40%),var(--bg);font:14px/1.5 Inter,"Segoe UI",Arial,sans-serif;color:var(--text)}
-button,input,select{font:inherit}
-button{cursor:pointer}
-.layout{min-height:100vh}
-.sidebar{position:fixed;inset:0 auto 0 0;width:230px;background:#0d1422;border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;z-index:2}
-.brand{display:flex;gap:11px;align-items:center;padding:3px 8px 28px}
-.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#a69bff,#6658ef);font-weight:900;font-size:22px}
-.brand strong{font-size:17px}
-.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:1.3px}
-.navlabel{color:#7485a5;font-size:10px;letter-spacing:1.5px;padding:12px}
-.nav{display:grid;gap:5px}
-.nav button{border:0;border-radius:10px;text-align:left;padding:12px;background:transparent;color:#b8c5dc}
-.nav button:hover,.nav button.active{background:#242c4a;color:#fff}
-.nav button.active{box-shadow:inset 3px 0 var(--purple)}
-.sidebar-foot{margin-top:auto;color:var(--muted);font-size:11px;padding:14px 9px}
-.main{margin-left:230px}
-.topbar{position:sticky;top:0;z-index:1;height:66px;background:#0c1322ee;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;backdrop-filter:blur(12px)}
-.crumb{color:var(--muted);font-size:11px;letter-spacing:1px}
-.actions{display:flex;gap:9px;align-items:center}
-.btn{border:1px solid #34415b;background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 13px;font-weight:650}
-.btn:hover{border-color:var(--purple)}
-.btn.primary{background:#7164ed;border-color:#7164ed;color:white}
-.btn:disabled{opacity:.6;cursor:wait}
-.avatar{background:#29254b;color:#c3bbff;border-radius:10px;padding:8px 11px;font-weight:800}
-.content{max-width:1500px;padding:27px 28px 42px;margin:auto}
-.pagehead{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:20px}
-.eyebrow{color:#aaa0ff;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:800}
-.pagehead h1{font-size:28px;letter-spacing:-.7px;margin:5px 0}
-.pagehead p{color:var(--muted);margin:0}
-.muted{color:var(--muted);font-size:11px}
-.statusline{display:flex;align-items:center;gap:9px;color:var(--muted);margin:0 0 18px;font-size:12px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--amber)}
-.statusline.ok .dot{background:var(--green)}
-.statusline.bad .dot{background:var(--red)}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
-.stat,.panel{background:linear-gradient(145deg,#131d2e,#101827);border:1px solid var(--line);border-radius:16px;padding:19px;min-width:0;box-shadow:0 14px 30px #0002}
-.stat-label{color:var(--muted);font-size:12px}
-.stat-value{font-size:25px;font-weight:800;margin-top:8px;overflow-wrap:anywhere}
-.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
-.panel{margin-top:16px}
-.panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-.panel h2{font-size:15px;margin:0}
-.tag{font-size:10px;color:#c3bbff;background:#29254b;padding:6px 9px;border-radius:8px}
-.two{display:grid;grid-template-columns:1.15fr .85fr;gap:15px}
-.activity-list{display:grid}
-.activity{display:flex;gap:10px;align-items:center;border-bottom:1px solid #263249;padding:12px 0}
-.activity:last-child{border-bottom:0}
-.activity-icon{width:34px;height:34px;display:grid;place-items:center;background:#29254b;color:#c4bbff;border-radius:10px}
-.activity-main{flex:1;min-width:0}
-.activity-title{font-size:12px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.activity-ref{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
-.activity-amount{text-align:right;font-weight:750;white-space:nowrap}
-.chart{height:220px;display:flex;gap:12px;align-items:stretch;padding-top:12px}
-.axis{display:flex;flex-direction:column;justify-content:space-between;color:var(--muted);font-size:10px;padding-bottom:25px}
-.bars{flex:1;min-width:0;display:flex;align-items:stretch;justify-content:space-around;gap:10px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0,transparent 24%,#263249 24.5%,transparent 25%)}
-.baritem{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px}
-.bar{width:min(35px,75%);min-height:3px;border-radius:7px 7px 2px 2px;background:linear-gradient(#aaa0ff,#6c5ff2)}
-.barvalue,.barlabel{font-size:10px;color:#b9b2ff;white-space:nowrap}
-.barlabel{color:var(--muted);padding-bottom:7px}
-.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
-.toolbar input,.toolbar select{min-height:40px;background:#0c1422;border:1px solid #2c3a54;border-radius:9px;padding:9px 12px;color:var(--text)}
-.toolbar input{flex:1;min-width:190px}
-.tablewrap{width:100%;overflow:auto}
-table{width:100%;border-collapse:collapse;white-space:nowrap}
-th{text-align:left;background:#172235;color:#9eacc5;font-size:10px;letter-spacing:.7px;text-transform:uppercase;padding:12px}
-td{padding:13px 12px;border-bottom:1px solid #263249;color:#d4deef;font-size:12px}
-tbody tr:hover{background:#172238}
-.cellmain{font-weight:750}
-.pill{display:inline-block;border-radius:20px;padding:4px 8px;background:#123b31;color:#5be2b0;font-size:10px;font-weight:800}
-.pill.warn{background:#3b2d18;color:#ffca75}
-.pill.bad{background:#421e2b;color:#ff8ba0}
-.empty{padding:22px;text-align:center;color:var(--muted)}
-.healthrow{display:grid;grid-template-columns:150px 1fr auto;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
-.healthurl{color:var(--muted);font-size:11px;overflow-wrap:anywhere}
-.error{color:var(--red);font-size:11px}
-.hidden{display:none!important}
-.footer{text-align:center;color:#71809a;padding:25px;font-size:10px}
-@media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}
-@media(max-width:720px){.sidebar{width:66px;padding:15px 7px}.brand{padding:0 4px 20px}.brandtext,.navlabel,.navtext,.sidebar-foot{display:none}.logo{width:45px;height:45px}.nav button{text-align:center;padding:13px 3px}.main{margin-left:66px}.topbar{height:60px;padding:0 12px}.content{padding:18px 12px}.pagehead h1{font-size:23px}.pagehead{align-items:flex-start}.grid{gap:9px}.stat{padding:13px}.stat-value{font-size:21px}.panel{padding:14px}.actions .refresh-label{display:none}}
-@media(max-width:430px){.grid{grid-template-columns:1fr}.healthrow{grid-template-columns:1fr auto}.healthurl{grid-column:1/-1}}
+/* ==========================================================================
+   Swiss FinTech Minimalist Design System
+   Palette: Deep Charcoal & Slate, Precision Hairlines, Subtle Warm Amber Accents
+   ========================================================================== */
+:root {
+  color-scheme: dark;
+  --bg-base: #090b0e;
+  --bg-surface: #11141a;
+  --bg-elevated: #161a22;
+  --bg-hover: #1c212b;
+  --bg-active: #222834;
+
+  --border-subtle: #1e232d;
+  --border-strong: #2a313f;
+  --border-focus: #475569;
+
+  --text-primary: #f2f4f8;
+  --text-secondary: #8b95a5;
+  --text-muted: #5e6777;
+
+  /* Refined FinTech Accents */
+  --amber: #f59e0b;
+  --amber-soft: #271f11;
+  --amber-border: #4a3818;
+
+  --emerald: #10b981;
+  --emerald-soft: #0c231a;
+  --emerald-border: #134633;
+
+  --crimson: #ef4444;
+  --crimson-soft: #271115;
+  --crimson-border: #4d1c24;
+
+  --slate: #94a3b8;
+  --slate-soft: #17202e;
+  --slate-border: #2c384c;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.45);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  font: 13.5px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+button { cursor: pointer; }
+
+/* Numeric precision */
+.num, .amount, .tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Layout */
+.layout { min-height: 100vh; display: flex; }
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 240px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 4px 8px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  background: #1c2330;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--amber);
+  letter-spacing: -0.5px;
+}
+.brand-info strong {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+  display: block;
+}
+.brand-info small {
+  color: var(--text-muted);
+  font-size: 9.5px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.nav-section-title {
+  color: var(--text-muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  padding: 18px 10px 8px;
+  text-transform: uppercase;
+}
+.nav { display: grid; gap: 3px; }
+.nav button {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  padding: 9px 11px;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.12s ease;
+}
+.nav button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.nav button.active {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  color: #fff;
+  font-weight: 600;
+}
+.nav button .nav-icon {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+.role-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 11.5px;
+}
+.role-badge small {
+  color: var(--text-muted);
+  font-size: 10px;
+  display: block;
+}
+
+/* Main Area */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 58px;
+  background: rgba(17, 20, 26, 0.88);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  backdrop-filter: blur(10px);
+}
+.crumb {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* RBAC Switcher */
+.role-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+.role-select-wrap label {
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.role-select {
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+  outline: none;
+  cursor: pointer;
+}
+
+/* Standard Buttons */
+.btn {
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 7px 13px;
+  font-size: 12.5px;
+  font-weight: 550;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.12s ease;
+}
+.btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-focus);
+}
+.btn.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.btn.primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+.btn.amber {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #0b0d10;
+  font-weight: 650;
+}
+.btn.amber:hover {
+  background: #d97706;
+  border-color: #d97706;
+}
+.btn.sm {
+  padding: 5px 9px;
+  font-size: 11.5px;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Content Container */
+.content {
+  max-width: 1440px;
+  width: 100%;
+  padding: 24px 28px 48px;
+  margin: 0 auto;
+}
+.pagehead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.pagehead h1 {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
+  margin: 4px 0 2px;
+}
+.pagehead p {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  margin: 0;
+}
+.statusline {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  margin-bottom: 16px;
+  padding: 4px 9px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+.statusline.ok .dot { background: var(--emerald); }
+.statusline.bad .dot { background: var(--crimson); }
+
+/* Quick Action Bar */
+.action-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.action-banner h3 {
+  margin: 0 0 2px;
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.action-banner p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Stat Cards */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.stat-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-value {
+  font-size: 23px;
+  font-weight: 700;
+  margin-top: 6px;
+  letter-spacing: -0.5px;
+}
+.stat-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Panels & Tables */
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  margin-top: 14px;
+}
+.panelhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.panelhead h2 {
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+.tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-border);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.5px;
+}
+
+.two {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+}
+
+/* Tables */
+.tablewrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+th {
+  text-align: left;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 12.5px;
+}
+tbody tr:hover {
+  background: var(--bg-hover);
+  cursor: pointer;
+}
+tbody tr:last-child td { border-bottom: 0; }
+
+.cellmain { font-weight: 600; }
+.muted { color: var(--text-secondary); font-size: 11px; }
+
+/* Swiss Pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  padding: 2px 7px;
+  background: var(--emerald-soft);
+  color: var(--emerald);
+  border: 1px solid var(--emerald-border);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.pill.warn {
+  background: var(--amber-soft);
+  color: var(--amber);
+  border-color: var(--amber-border);
+}
+.pill.bad {
+  background: var(--crimson-soft);
+  color: var(--crimson);
+  border-color: var(--crimson-border);
+}
+.pill.neutral {
+  background: var(--slate-soft);
+  color: var(--slate);
+  border-color: var(--slate-border);
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.toolbar input, .toolbar select {
+  height: 36px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0 11px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.toolbar input:focus, .toolbar select:focus {
+  border-color: var(--border-focus);
+  outline: none;
+}
+.toolbar input { flex: 1; min-width: 200px; }
+
+/* Activity & Charts */
+.activity-list { display: grid; }
+.activity {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 0;
+}
+.activity:last-child { border-bottom: 0; }
+.activity-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+.activity-main { flex: 1; min-width: 0; }
+.activity-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.activity-ref { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+.activity-amount { text-align: right; font-weight: 650; white-space: nowrap; }
+
+.chart {
+  height: 180px;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  padding-top: 10px;
+}
+.axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 9.5px;
+  padding-bottom: 20px;
+}
+.bars {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-strong);
+}
+.baritem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+}
+.bar {
+  width: min(28px, 80%);
+  min-height: 4px;
+  background: var(--amber);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.85;
+}
+.barvalue, .barlabel {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  max-width: 540px;
+  width: 100%;
+  padding: 22px 24px;
+}
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.modal-head h2 { margin: 0; font-size: 15px; font-weight: 650; }
+.close-btn {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 18px;
+}
+.form-group {
+  margin-bottom: 14px;
+}
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  height: 38px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--border-focus);
+  outline: none;
+}
+.form-help {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Diagnostics */
+.healthrow {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 12px;
+}
+.healthurl { color: var(--text-muted); font-size: 11px; font-family: monospace; }
+.empty { padding: 24px; text-align: center; color: var(--text-muted); font-size: 12px; }
+.hidden { display: none !important; }
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 28px;
+  font-size: 11px;
+}
+
+@media(max-width: 1024px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .two { grid-template-columns: 1fr; }
+}
+@media(max-width: 720px) {
+  .sidebar { width: 60px; padding: 14px 6px; }
+  .brand-info, .nav-section-title, .nav-label, .sidebar-footer, .crumb { display: none; }
+  .main { margin-left: 60px; }
+  .topbar { padding: 0 14px; }
+  .content { padding: 16px 14px; }
+  .grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <div class="layout">
+
+<!-- SIDEBAR -->
 <aside class="sidebar">
-  <div class="brand"><div class="logo">L</div><div class="brandtext"><strong>LedgerFlow</strong><small>BANKING &amp; SETTLEMENT</small></div></div>
-  <div class="navlabel">WORKSPACE</div>
+  <div class="brand">
+    <div class="brand-mark">LF</div>
+    <div class="brand-info">
+      <strong>LedgerFlow</strong>
+      <small>Core Settlement Engine</small>
+    </div>
+  </div>
+
+  <div class="nav-section-title">Operations</div>
   <nav class="nav">
-    <button class="active" data-page="overview">▦ &nbsp; <span class="navtext">Overview</span></button>
-    <button data-page="accounts">▤ &nbsp; <span class="navtext">Accounts</span></button>
-    <button data-page="transactions">⇄ &nbsp; <span class="navtext">Transactions</span></button>
-    <button data-page="branches">⌂ &nbsp; <span class="navtext">Branches</span></button>
-    <button data-page="activity">◷ &nbsp; <span class="navtext">Activity Analytics</span></button>
-    <button data-page="trial">▥ &nbsp; <span class="navtext">Trial Balance</span></button>
-    <button data-page="health">♡ &nbsp; <span class="navtext">System Health</span></button>
+    <button class="active" data-page="overview"><span class="nav-icon">▦</span> <span class="nav-label">Overview</span></button>
+    <button data-page="transfers"><span class="nav-icon">⇄</span> <span class="nav-label">Transfers &amp; ACH</span></button>
+    <button data-page="accounts"><span class="nav-icon">▤</span> <span class="nav-label">Accounts</span></button>
+    <button data-page="trial"><span class="nav-icon">▥</span> <span class="nav-label">Trial Balance</span></button>
+    <button data-page="transactions"><span class="nav-icon">◷</span> <span class="nav-label">Audit Ledger</span></button>
+    <button data-page="branches"><span class="nav-icon">⌂</span> <span class="nav-label">Branches</span></button>
+    <button data-page="health"><span class="nav-icon">♡</span> <span class="nav-label">System Diagnostics</span></button>
   </nav>
-  <div class="sidebar-foot">● <span id="sideStatus">Checking services</span><br>LedgerFlow Admin</div>
+
+  <div class="sidebar-footer">
+    <div class="role-badge">
+      <div>
+        <strong id="sideRoleText">ADMIN</strong>
+        <small id="sideStatus">Services Operational</small>
+      </div>
+      <span class="pill" id="sidePill">ONLINE</span>
+    </div>
+  </div>
 </aside>
+
+<!-- MAIN CONTENT -->
 <main class="main">
-<header class="topbar">
-  <div id="crumb" class="crumb">BANKING OPERATIONS / OVERVIEW</div>
-  <div class="actions"><button id="refreshBtn" class="btn">↻ <span class="refresh-label">Refresh data</span></button><div class="avatar">LF</div></div>
-</header>
-<div class="content">
-<div class="pagehead"><div><div class="eyebrow" id="eyebrow">BANKING OPERATIONS / OVERVIEW</div><h1 id="pageTitle">Good day, Administrator ✦</h1><p id="pageDescription">Your banking network at a glance.</p></div><div class="muted" id="updated">Waiting for data…</div></div>
-<div id="globalStatus" class="statusline"><span class="dot"></span><span id="globalStatusText">Connecting to backend…</span></div>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div id="crumb" class="crumb">OPERATIONS / OVERVIEW</div>
+    <div class="topbar-actions">
+      <!-- Role Switcher (RBAC) -->
+      <div class="role-select-wrap">
+        <label for="roleSwitcher">Role:</label>
+        <select id="roleSwitcher" class="role-select">
+          <option value="ADMIN">Bank Administrator</option>
+          <option value="TELLER">Branch Teller</option>
+          <option value="CUSTOMER">Customer View</option>
+        </select>
+      </div>
+      <button id="refreshBtn" class="btn">↻ Refresh</button>
+      <button id="openTransferModalBtn" class="btn amber">⇄ New Transfer</button>
+    </div>
+  </header>
 
-<section class="page" id="page-overview">
-<div class="grid">
-  <div class="stat"><div class="stat-label">Total accounts</div><div class="stat-value" id="ovAccounts">—</div><div class="stat-sub">Registered accounts</div></div>
-  <div class="stat"><div class="stat-label">Active branches</div><div class="stat-value" id="ovBranches">—</div><div class="stat-sub">Across the network</div></div>
-  <div class="stat"><div class="stat-label">Total account balances</div><div class="stat-value" id="ovBalance">—</div><div class="stat-sub">Current recorded balances</div></div>
-  <div class="stat"><div class="stat-label">Transactions</div><div class="stat-value" id="ovTransactions">—</div><div class="stat-sub">Recorded transactions</div></div>
-</div>
-<div class="two">
-  <div class="panel"><div class="panelhead"><div><h2>Transaction activity</h2><div class="muted">Latest six transactions by date</div></div><span class="tag" id="overviewChartCount">0 transactions</span></div><div id="overviewChart" class="chart"><div class="empty">Loading chart…</div></div></div>
-  <div class="panel"><div class="panelhead"><div><h2>Recent activity</h2><div class="muted">Most recent transaction events</div></div><span class="tag">LIVE DATA</span></div><div id="overviewActivity" class="activity-list"><div class="empty">Loading activity…</div></div></div>
-</div>
-<div class="panel"><div class="panelhead"><h2>Account overview</h2><button class="btn" data-go="accounts">View accounts →</button></div><div class="tablewrap"><table><thead><tr><th>Account</th><th>Branch</th><th>Type</th><th>Balance</th><th>Status</th></tr></thead><tbody id="overviewAccounts"><tr><td colspan="5" class="empty">Loading accounts…</td></tr></tbody></table></div></div>
-</section>
+  <div class="content">
+    <div class="pagehead">
+      <div>
+        <h1 id="pageTitle">Operations Console</h1>
+        <p id="pageDescription">Institutional liquidity, account reconciliation, and settlement engine.</p>
+      </div>
+      <div class="muted num" id="updated">Synchronizing…</div>
+    </div>
 
-<section class="page hidden" id="page-accounts">
-<div class="grid">
-  <div class="stat"><div class="stat-label">Accounts found</div><div class="stat-value" id="accFound">0</div></div>
-  <div class="stat"><div class="stat-label">Active accounts</div><div class="stat-value" id="accActive">0</div></div>
-  <div class="stat"><div class="stat-label">Filtered balance</div><div class="stat-value" id="accBalance">₹0</div></div>
-  <div class="stat"><div class="stat-label">Account types</div><div class="stat-value" id="accTypes">0</div></div>
-</div>
-<div class="panel"><div class="panelhead"><h2>Accounts directory</h2><button id="exportAccounts" class="btn">Export CSV ↓</button></div>
-<div class="toolbar"><input id="accountSearch" placeholder="Search account, holder, branch…"><select id="accountStatus"><option value="">All statuses</option><option>ACTIVE</option><option>INACTIVE</option><option>FROZEN</option></select></div>
-<div class="tablewrap"><table><thead><tr><th>Account</th><th>Type</th><th>Branch</th><th>Balance</th><th>Status</th></tr></thead><tbody id="accountsTable"></tbody></table></div></div>
-</section>
+    <div id="globalStatus" class="statusline ok">
+      <span class="dot"></span>
+      <span id="globalStatusText">Connecting to core banking database…</span>
+    </div>
 
-<section class="page hidden" id="page-transactions">
-<div class="grid">
-  <div class="stat"><div class="stat-label">Total transactions</div><div class="stat-value" id="txCount">0</div></div>
-  <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="txCompleted">0</div></div>
-  <div class="stat"><div class="stat-label">Pending / processing</div><div class="stat-value" id="txPending">0</div></div>
-  <div class="stat"><div class="stat-label">Transaction value</div><div class="stat-value" id="txValue">₹0</div></div>
-</div>
-<div class="panel"><div class="panelhead"><h2>Transaction ledger</h2><button id="exportTransactions" class="btn">Export CSV ↓</button></div>
-<div class="toolbar"><input id="transactionSearch" placeholder="Search reference, description, type…"><select id="transactionStatus"><option value="">All statuses</option><option>COMPLETED</option><option>PENDING</option><option>PROCESSING</option><option>FAILED</option></select></div>
-<div class="tablewrap"><table><thead><tr><th>Reference</th><th>Description</th><th>Type</th><th>Amount</th><th>Status</th><th>Created</th></tr></thead><tbody id="transactionsTable"></tbody></table></div></div>
-</section>
+    <!-- Quick Action / Settlement Banner (Admin only) -->
+    <div class="action-banner" id="adminBanner">
+      <div>
+        <h3>ACH Settlement Engine &amp; Netting</h3>
+        <p>Trigger end-of-day batch settlement or simulate cross-branch Saga compensation.</p>
+      </div>
+      <div class="action-buttons">
+        <button id="settleBatchBtn" class="btn sm primary">⚡ Settle Current Batch</button>
+        <button id="viewNettingBtn" class="btn sm">▥ View Netting Report</button>
+        <button id="openAccountModalBtn" class="btn sm">+ Open Account</button>
+      </div>
+    </div>
 
-<section class="page hidden" id="page-branches">
-<div class="grid">
-  <div class="stat"><div class="stat-label">Total branches</div><div class="stat-value" id="brCount">0</div></div>
-  <div class="stat"><div class="stat-label">Active branches</div><div class="stat-value" id="brActive">0</div></div>
-  <div class="stat"><div class="stat-label">Customer accounts</div><div class="stat-value" id="brAccounts">0</div></div>
-  <div class="stat"><div class="stat-label">Branches with accounts</div><div class="stat-value" id="brCoverage">0</div></div>
-</div>
-<div class="panel"><div class="panelhead"><h2>Branch directory</h2><button id="exportBranches" class="btn">Export CSV ↓</button></div>
-<div class="toolbar"><input id="branchSearch" placeholder="Search branch, code, location…"></div>
-<div class="tablewrap"><table><thead><tr><th>Branch</th><th>Code</th><th>Location</th><th>Accounts</th><th>Status</th></tr></thead><tbody id="branchesTable"></tbody></table></div></div>
-</section>
+    <!-- PAGE 1: OVERVIEW -->
+    <section class="page" id="page-overview">
+      <div class="grid">
+        <div class="stat">
+          <div class="stat-label">Total Deposits</div>
+          <div class="stat-value num" id="ovBalance">—</div>
+          <div class="stat-sub">Across active customer accounts</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Registered Accounts</div>
+          <div class="stat-value num" id="ovAccounts">—</div>
+          <div class="stat-sub">In-network retail &amp; current</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Active Branches</div>
+          <div class="stat-value num" id="ovBranches">—</div>
+          <div class="stat-sub">Connected settlement hubs</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Transactions</div>
+          <div class="stat-value num" id="ovTransactions">—</div>
+          <div class="stat-sub">Immutable double-entry rows</div>
+        </div>
+      </div>
 
-<section class="page hidden" id="page-activity">
-<div class="grid">
-  <div class="stat"><div class="stat-label">Transactions</div><div class="stat-value" id="actCount">0</div></div>
-  <div class="stat"><div class="stat-label">Completed</div><div class="stat-value" id="actCompleted">0</div></div>
-  <div class="stat"><div class="stat-label">Average transaction</div><div class="stat-value" id="actAverage">₹0</div></div>
-  <div class="stat"><div class="stat-label">Total transaction value</div><div class="stat-value" id="actTotal">₹0</div></div>
-</div>
-<div class="two"><div class="panel"><div class="panelhead"><h2>Transaction volume</h2><span class="tag" id="activityChartCount">0 transactions</span></div><div id="activityChart" class="chart"></div></div>
-<div class="panel"><div class="panelhead"><h2>Recent activity</h2></div><div id="activityList" class="activity-list"></div></div></div>
-</section>
+      <div class="two">
+        <div class="panel">
+          <div class="panelhead">
+            <div>
+              <h2>Transaction Volume &amp; Velocity</h2>
+              <div class="muted">Recent settlements processed</div>
+            </div>
+            <span class="tag" id="overviewChartCount">0 settlements</span>
+          </div>
+          <div id="overviewChart" class="chart"><div class="empty">Calculating ledger volumes…</div></div>
+        </div>
 
-<section class="page hidden" id="page-trial">
-<div class="grid">
-  <div class="stat"><div class="stat-label">Accounts in report</div><div class="stat-value" id="trialCount">0</div></div>
-  <div class="stat"><div class="stat-label">Total system balance</div><div class="stat-value" id="trialTotal">₹0</div></div>
-  <div class="stat"><div class="stat-label">Positive balances</div><div class="stat-value" id="trialPositive">0</div></div>
-  <div class="stat"><div class="stat-label">Negative balances</div><div class="stat-value" id="trialNegative">0</div></div>
-</div>
-<div class="panel"><div class="panelhead"><h2>Trial balance report</h2><button id="refreshTrial" class="btn">↻ Refresh report</button></div>
-<div class="toolbar"><input id="trialSearch" placeholder="Search account number or name"><button id="exportTrial" class="btn">Export CSV ↓</button></div>
-<div id="trialError" class="error"></div>
-<div class="tablewrap"><table><thead><tr><th>Account number</th><th>Account name</th><th>Balance</th><th>Position</th></tr></thead><tbody id="trialTable"></tbody></table></div></div>
-</section>
+        <div class="panel">
+          <div class="panelhead">
+            <div>
+              <h2>Audit Log Stream</h2>
+              <div class="muted">Real-time ledger events</div>
+            </div>
+            <span class="tag">REAL-TIME</span>
+          </div>
+          <div id="overviewActivity" class="activity-list"><div class="empty">Loading ledger events…</div></div>
+        </div>
+      </div>
 
-<section class="page hidden" id="page-health">
-<div class="grid">
-  <div class="stat"><div class="stat-label">Application</div><div class="stat-value" id="healthApp">—</div></div>
-  <div class="stat"><div class="stat-label">Database</div><div class="stat-value" id="healthDb">—</div></div>
-  <div class="stat"><div class="stat-label">Last health response</div><div class="stat-value" id="healthTime">—</div></div>
-  <div class="stat"><div class="stat-label">Checks passed</div><div class="stat-value" id="healthPassed">—</div></div>
-</div>
-<div class="panel"><div class="panelhead"><div><h2>Service diagnostics</h2><div class="muted" id="healthSummary">Run checks to inspect the API.</div></div><button id="runChecks" class="btn primary">↻ Run checks</button></div><div id="healthRows"></div></div>
-</section>
-<div class="footer">LedgerFlow · Multi-Branch Banking &amp; Settlement Platform</div>
-</div></main></div>
+      <div class="panel">
+        <div class="panelhead">
+          <h2>Active Accounts Ledger</h2>
+          <button class="btn sm" data-go="accounts">Explore All Accounts →</button>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Account Identifier</th>
+                <th>Branch</th>
+                <th>Category</th>
+                <th>Current Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="overviewAccounts">
+              <tr><td colspan="5" class="empty">Loading accounts from PostgreSQL…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
+    <!-- PAGE 2: TRANSFERS & ACH -->
+    <section class="page hidden" id="page-transfers">
+      <div class="grid">
+        <div class="stat">
+          <div class="stat-label">Settlement Mode</div>
+          <div class="stat-value" style="font-size: 18px; color: var(--amber);">RTGS &amp; ACH</div>
+          <div class="stat-sub">Pessimistic Locking + Saga</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Clearing Balance</div>
+          <div class="stat-value num" id="achClearingBal">₹0.00</div>
+          <div class="stat-sub">ACH Suspense Account</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Completed Transfers</div>
+          <div class="stat-value num" id="trCompletedCount">0</div>
+          <div class="stat-sub">Audited in ledger</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Pending / Reserved</div>
+          <div class="stat-value num" id="trPendingCount">0</div>
+          <div class="stat-sub">Awaiting batch cycle</div>
+        </div>
+      </div>
+
+      <div class="two">
+        <!-- Transfer Form -->
+        <div class="panel">
+          <div class="panelhead">
+            <h2>Execute Transfer</h2>
+            <span class="tag">TRANSACTION ENGINE</span>
+          </div>
+          <form id="transferForm" onsubmit="return false;">
+            <div class="form-group">
+              <label>Transfer Type</label>
+              <select id="transferTypeSelect">
+                <option value="RTGS">Real-Time Gross Settlement (Instant RTGS)</option>
+                <option value="ACH">ACH Batch Settlement (Delayed + Saga Holding)</option>
+              </select>
+              <div class="form-help">RTGS locks both accounts immediately. ACH reserves funds into ACH-CLEARING.</div>
+            </div>
+            <div class="form-group">
+              <label>Source Account (Debit)</label>
+              <select id="transferSourceSelect"></select>
+            </div>
+            <div class="form-group">
+              <label>Destination Account (Credit)</label>
+              <select id="transferDestSelect"></select>
+            </div>
+            <div class="form-group">
+              <label>Amount (INR)</label>
+              <input type="number" step="0.01" min="1.00" id="transferAmount" placeholder="e.g. 5000.00" required>
+            </div>
+            <div class="form-group">
+              <label>Description / Reference Note</label>
+              <input type="text" id="transferDesc" placeholder="e.g. Supplier payment, Inter-branch settlement">
+            </div>
+            <div id="transferFeedback" style="margin-bottom: 12px; font-size: 12px;"></div>
+            <button type="button" id="executeTransferBtn" class="btn primary" style="width: 100%;">Post Double-Entry Transfer</button>
+          </form>
+        </div>
+
+        <!-- Settlement & Netting Overview -->
+        <div class="panel">
+          <div class="panelhead">
+            <h2>ACH Batch &amp; Netting Desk</h2>
+          </div>
+          <p class="muted" style="margin-bottom: 14px;">
+            The central clearing house groups delayed ACH requests. During settlement, inter-branch debit/credit netting is computed automatically.
+          </p>
+          <div style="background: var(--bg-elevated); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 14px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+              <span class="muted">Open Batch Status</span>
+              <span class="pill warn">OPEN FOR CLEARING</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span class="muted">Central Clearing Account</span>
+              <strong class="num">ACH-CLEARING</strong>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="directSettleBtn" class="btn primary" style="flex: 1;">⚡ Settle Open Batch</button>
+            <button id="directNettingBtn" class="btn" style="flex: 1;">View Netting</button>
+          </div>
+          <div id="nettingResultBox" style="margin-top: 14px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: ACCOUNTS -->
+    <section class="page hidden" id="page-accounts">
+      <div class="grid">
+        <div class="stat"><div class="stat-label">Accounts Listed</div><div class="stat-value num" id="accFound">0</div></div>
+        <div class="stat"><div class="stat-label">Active Status</div><div class="stat-value num" id="accActive">0</div></div>
+        <div class="stat"><div class="stat-label">Filtered Volume</div><div class="stat-value num" id="accBalance">₹0</div></div>
+        <div class="stat"><div class="stat-label">Account Types</div><div class="stat-value num" id="accTypes">0</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panelhead">
+          <h2>Account Directory &amp; Ledger Auditing</h2>
+          <div style="display:flex; gap:8px;">
+            <button id="openAccountModalBtn2" class="btn amber sm">+ Open Account</button>
+            <button id="exportAccounts" class="btn sm">Export CSV ↓</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="accountSearch" placeholder="Search account number, customer name, branch…">
+          <select id="accountStatus">
+            <option value="">All Statuses</option>
+            <option>ACTIVE</option>
+            <option>INACTIVE</option>
+            <option>FROZEN</option>
+          </select>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Account Identifier</th>
+                <th>Type</th>
+                <th>Branch</th>
+                <th>Ledger Balance</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="accountsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: TRIAL BALANCE -->
+    <section class="page hidden" id="page-trial">
+      <div class="grid">
+        <div class="stat"><div class="stat-label">Audited Accounts</div><div class="stat-value num" id="trialCount">0</div></div>
+        <div class="stat"><div class="stat-label">Net System Position</div><div class="stat-value num" id="trialTotal">₹0</div></div>
+        <div class="stat"><div class="stat-label">Solvent Accounts</div><div class="stat-value num" id="trialPositive">0</div></div>
+        <div class="stat"><div class="stat-label">Deficit Accounts</div><div class="stat-value num" id="trialNegative">0</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panelhead">
+          <div>
+            <h2>General Ledger Trial Balance</h2>
+            <div class="muted">Real-time aggregate verifying double-entry equilibrium</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="refreshTrial" class="btn sm">↻ Recalculate</button>
+            <button id="exportTrial" class="btn sm">Export CSV ↓</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="trialSearch" placeholder="Filter by account identifier or holder name…">
+        </div>
+        <div id="trialError" style="color:var(--crimson); font-size:12px; margin-bottom:8px;"></div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Account Number</th>
+                <th>Account Title</th>
+                <th>Running Balance</th>
+                <th>Balance Position</th>
+              </tr>
+            </thead>
+            <tbody id="trialTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5: TRANSACTIONS / AUDIT LEDGER -->
+    <section class="page hidden" id="page-transactions">
+      <div class="grid">
+        <div class="stat"><div class="stat-label">Total Entries</div><div class="stat-value num" id="txCount">0</div></div>
+        <div class="stat"><div class="stat-label">Settled / Completed</div><div class="stat-value num" id="txCompleted">0</div></div>
+        <div class="stat"><div class="stat-label">Pending / Processing</div><div class="stat-value num" id="txPending">0</div></div>
+        <div class="stat"><div class="stat-label">Cumulative Volume</div><div class="stat-value num" id="txValue">₹0</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panelhead">
+          <h2>Immutable Transaction Ledger</h2>
+          <button id="exportTransactions" class="btn sm">Export CSV ↓</button>
+        </div>
+        <div class="toolbar">
+          <input id="transactionSearch" placeholder="Search reference number, description, type…">
+          <select id="transactionStatus">
+            <option value="">All Statuses</option>
+            <option>COMPLETED</option>
+            <option>PENDING</option>
+            <option>PROCESSING</option>
+            <option>FAILED</option>
+          </select>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6: BRANCHES -->
+    <section class="page hidden" id="page-branches">
+      <div class="grid">
+        <div class="stat"><div class="stat-label">Branch Hubs</div><div class="stat-value num" id="brCount">0</div></div>
+        <div class="stat"><div class="stat-label">Active Hubs</div><div class="stat-value num" id="brActive">0</div></div>
+        <div class="stat"><div class="stat-label">Retail Customers</div><div class="stat-value num" id="brAccounts">0</div></div>
+        <div class="stat"><div class="stat-label">Network Coverage</div><div class="stat-value num" id="brCoverage">0</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panelhead">
+          <h2>Branch Network Directory</h2>
+          <button id="exportBranches" class="btn sm">Export CSV ↓</button>
+        </div>
+        <div class="toolbar">
+          <input id="branchSearch" placeholder="Search branch name, IFSC/code, location…">
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Branch Name</th>
+                <th>Branch Code</th>
+                <th>Physical Location</th>
+                <th>Active Accounts</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="branchesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 7: SYSTEM DIAGNOSTICS -->
+    <section class="page hidden" id="page-health">
+      <div class="grid">
+        <div class="stat"><div class="stat-label">Core Application</div><div class="stat-value" id="healthApp" style="font-size: 19px;">—</div></div>
+        <div class="stat"><div class="stat-label">PostgreSQL Database</div><div class="stat-value" id="healthDb" style="font-size: 19px;">—</div></div>
+        <div class="stat"><div class="stat-label">Last Probe</div><div class="stat-value num" id="healthTime">—</div></div>
+        <div class="stat"><div class="stat-label">Endpoints Healthy</div><div class="stat-value num" id="healthPassed">—</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panelhead">
+          <div>
+            <h2>Service Endpoints Health Diagnostics</h2>
+            <div class="muted" id="healthSummary">Checking connection latency and readiness.</div>
+          </div>
+          <button id="runChecks" class="btn primary sm">↻ Probe Endpoints</button>
+        </div>
+        <div id="healthRows"></div>
+      </div>
+    </section>
+
+    <div class="footer">
+      LedgerFlow Core Banking &amp; Multi-Branch Settlement Platform · ACID Double-Entry Ledger
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- MODAL: ACCOUNT STATEMENT AUDIT -->
+<div class="modal-overlay hidden" id="statementModal">
+  <div class="modal" style="max-width: 680px;">
+    <div class="modal-head">
+      <div>
+        <h2 id="stmtTitle">Account Statement</h2>
+        <div class="muted num" id="stmtSub">—</div>
+      </div>
+      <button class="close-btn" id="closeStatementModal">&times;</button>
+    </div>
+    <div style="display:flex; justify-content:space-between; background:var(--bg-elevated); padding:12px; border-radius:var(--radius-sm); margin-bottom:14px;">
+      <div><span class="muted">Holder Name:</span> <strong id="stmtHolder">—</strong></div>
+      <div><span class="muted">Current Balance:</span> <strong class="num" id="stmtBalance" style="color:var(--emerald);">₹0.00</strong></div>
+    </div>
+    <div class="tablewrap" style="max-height: 340px; overflow-y:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Type</th>
+            <th>Entry</th>
+            <th>Amount</th>
+            <th>Running Balance</th>
+          </tr>
+        </thead>
+        <tbody id="statementTable">
+          <tr><td colspan="5" class="empty">Loading statement entries…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: OPEN NEW ACCOUNT -->
+<div class="modal-overlay hidden" id="accountModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Open New Bank Account</h2>
+      <button class="close-btn" id="closeAccountModal">&times;</button>
+    </div>
+    <form id="newAccountForm" onsubmit="return false;">
+      <div class="form-group">
+        <label>Account Holder Full Name</label>
+        <input type="text" id="newAccountHolder" placeholder="e.g. Ramesh Patel" required>
+      </div>
+      <div class="form-group">
+        <label>Account Type</label>
+        <select id="newAccountType">
+          <option value="SAVINGS">SAVINGS ACCOUNT</option>
+          <option value="CURRENT">CURRENT ACCOUNT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Branch Assignment</label>
+        <select id="newAccountBranch"></select>
+      </div>
+      <div class="form-group">
+        <label>Initial Deposit (Opening Balance)</label>
+        <input type="number" step="0.01" min="0.00" id="newAccountDeposit" placeholder="e.g. 25000.00" required>
+        <div class="form-help">Opening balance automatically creates a balanced deposit transaction.</div>
+      </div>
+      <div id="newAccountFeedback" style="margin-bottom: 12px; font-size: 12px;"></div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button type="button" class="btn" id="cancelAccountBtn">Cancel</button>
+        <button type="button" class="btn primary" id="submitNewAccountBtn">Create Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SCRIPT -->
 <script>
 'use strict';
-const API={health:'/api/health',accounts:'/api/accounts',transactions:'/api/transactions',branches:'/api/branches',trial:'/api/reports/trial-balance'};
-const $=id=>document.getElementById(id);
-const meta={
- overview:['Overview','Good day, Administrator ✦','Your banking network at a glance.'],
- accounts:['Accounts','Account directory','Browse and filter registered banking accounts.'],
- transactions:['Transactions','Transaction ledger','Review transaction status, amounts, and timestamps.'],
- branches:['Branches','Branch directory','Explore your branch network and account coverage.'],
- activity:['Activity Analytics','Activity analytics','Review transaction activity and value.'],
- trial:['Trial Balance','Trial balance report','Review the reported account balances.'],
- health:['System Health','System health','Check backend and database connectivity.']
+
+const API = {
+  health: '/api/health',
+  accounts: '/api/accounts',
+  transfers: '/api/transfers',
+  achTransfers: '/api/ach/transfers',
+  achSettle: '/api/ach/batches/current/settle',
+  achNetting: id => `/api/ach/batches/${id}/netting`,
+  transactions: '/api/transactions',
+  branches: '/api/branches',
+  trial: '/api/reports/trial-balance',
+  statements: acc => `/api/reports/statements/${acc}`
 };
-const state={health:{},accounts:[],transactions:[],branches:[],trial:{},checks:[],errors:{}};
 
-function money(v){
- const n=Number(v);
- return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(n)?n:0);
-}
-function num(v){return new Intl.NumberFormat('en-IN').format(Number(v)||0);}
-function safe(v){
- return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function dateText(v){
- if(!v)return '—';
- const d=new Date(v);
- return Number.isNaN(d.getTime())?safe(v):d.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
-}
-function timeValue(v){
- const n=Date.parse(v||'');
- return Number.isFinite(n)?n:0;
-}
-function amount(a){return Number(a?.balance??a?.reportedBalance??a?.amount??0)||0;}
+const $ = id => document.getElementById(id);
 
-async function getJSON(url){
- const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store'});
- const text=await res.text();
- let data;
- try{data=text?JSON.parse(text):{};}
- catch{throw Error(`Invalid JSON from ${url} (HTTP ${res.status})`);}
- if(!res.ok)throw Error(`${url} returned HTTP ${res.status}${data.message?': '+data.message:''}`);
- if(data?.success===false)throw Error(data.message||'API reported failure');
- return data;
-}
-function unwrap(d){
- if(Array.isArray(d))return d;
- if(Array.isArray(d?.data))return d.data;
- if(Array.isArray(d?.data?.data))return d.data.data;
- return [];
-}
-function pill(v){
- const s=String(v||'UNKNOWN').toUpperCase();
- const c=['COMPLETED','ACTIVE','SUCCESS','UP','CONNECTED','TRUE'].includes(s)?'pill':
-  ['PENDING','PROCESSING','UNKNOWN'].includes(s)?'pill warn':'pill bad';
- return `<span class="${c}">${safe(s)}</span>`;
-}
-function emptyRow(n,msg){return `<tr><td colspan="${n}" class="empty">${safe(msg)}</td></tr>`;}
+const meta = {
+  overview: ['Overview', 'Operations Console', 'Institutional liquidity, account reconciliation, and settlement engine.'],
+  transfers: ['Transfers & ACH', 'Transfer Desk & Settlement', 'Execute real-time transfers (RTGS) or submit delayed ACH batch entries.'],
+  accounts: ['Accounts', 'Account Directory', 'Manage client accounts, audit opening balances, and view statements.'],
+  trial: ['Trial Balance', 'General Ledger Trial Balance', 'Double-entry trial balance proving debit/credit mathematical equilibrium.'],
+  transactions: ['Audit Ledger', 'Immutable Transaction Ledger', 'Chronological transaction logs with double-entry integrity.'],
+  branches: ['Branches', 'Branch Network', 'Inter-branch infrastructure and settlement code mapping.'],
+  health: ['System Diagnostics', 'System Diagnostics', 'Real-time database connectivity and endpoint latency probes.']
+};
 
-/* This function renders a list only. It never calls itself. */
-function renderActivityList(list,id,limit=5){
- const el=$(id);
- if(!el)return;
- const items=(Array.isArray(list)?list:[]).slice()
-  .sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt)).slice(0,limit);
- el.innerHTML=items.length?items.map(t=>`
-  <div class="activity">
-   <div class="activity-icon">${String(t.transactionType||'').toUpperCase()==='TRANSFER'?'↗':'↓'}</div>
-   <div class="activity-main">
-    <div class="activity-title">${safe(t.description||t.transactionType||'Transaction')}</div>
-    <div class="activity-ref">${safe(t.referenceNumber||`Transaction #${t.id??'—'}`)}</div>
-   </div>
-   <div class="activity-amount">${money(t.amount)}<div class="muted">${safe(t.status||'RECORDED')}</div></div>
-  </div>`).join(''):'<div class="empty">No recent activity.</div>';
+const state = {
+  health: {},
+  accounts: [],
+  transactions: [],
+  branches: [],
+  trial: {},
+  checks: [],
+  errors: {},
+  currentRole: 'ADMIN'
+};
+
+function money(v) {
+  const n = Number(v);
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Number.isFinite(n) ? n : 0);
 }
 
-/* Safe date sorting avoids Date objects being compared as invalid primitives. */
-function renderChart(list,id,countId){
- const el=$(id);
- if(!el)return;
- const items=(Array.isArray(list)?list:[]).slice()
-  .sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt)).slice(0,6).reverse();
- if($(countId))$(countId).textContent=`${list.length} transaction${list.length===1?'':'s'}`;
- if(!items.length){el.innerHTML='<div class="empty">No transaction data available.</div>';return;}
- const max=Math.max(1,...items.map(t=>Number(t.amount)||0));
- el.innerHTML=`<div class="axis"><span>${money(max)}</span><span>${money(max*.66)}</span><span>${money(max*.33)}</span><span>₹0</span></div>
- <div class="bars">${items.map(t=>{
-  const a=Math.max(0,Number(t.amount)||0),h=Math.max(2,a/max*100);
-  const label=a>=100000?(a/100000).toFixed(1)+'L':a>=1000?(a/1000).toFixed(0)+'k':num(a);
-  return `<div class="baritem" title="${safe(t.description||t.referenceNumber||'Transaction')}: ${money(a)}">
-   <div class="barvalue">${label}</div><div class="bar" style="height:${h}%"></div><div class="barlabel">#${safe(t.id??'—')}</div>
-  </div>`;
- }).join('')}</div>`;
-}
-function renderOverview(){
- $('ovAccounts').textContent=num(state.accounts.length);
- $('ovBranches').textContent=num(state.branches.filter(b=>b.active!==false&&String(b.active).toLowerCase()!=='false').length);
- $('ovBalance').textContent=money(state.accounts.reduce((s,a)=>s+amount(a),0));
- $('ovTransactions').textContent=num(state.transactions.length);
- renderChart(state.transactions,'overviewChart','overviewChartCount');
- renderActivityList(state.transactions,'overviewActivity',5);
- const rows=state.accounts.slice(0,6);
- $('overviewAccounts').innerHTML=rows.length?rows.map(a=>`<tr>
- <td><div class="cellmain">${safe(a.accountHolderName||a.accountName||'Account')}</div><div class="muted">${safe(a.accountNumber||'—')}</div></td>
- <td>${safe(a.branchName||'—')}</td><td>${safe(a.accountType||'—')}</td><td><strong>${money(a.balance)}</strong></td><td>${pill(a.status)}</td></tr>`).join(''):emptyRow(5,'No accounts returned.');
-}
-function filteredAccounts(){
- const q=$('accountSearch').value.trim().toLowerCase(),s=$('accountStatus').value.toUpperCase();
- return state.accounts.filter(a=>[a.accountNumber,a.accountHolderName,a.accountName,a.branchName,a.accountType].some(v=>String(v||'').toLowerCase().includes(q))&&(!s||String(a.status||'').toUpperCase()===s));
-}
-function renderAccounts(){
- const l=filteredAccounts();
- $('accFound').textContent=num(l.length);
- $('accActive').textContent=num(state.accounts.filter(a=>String(a.status).toUpperCase()==='ACTIVE').length);
- $('accBalance').textContent=money(l.reduce((s,a)=>s+amount(a),0));
- $('accTypes').textContent=num(new Set(state.accounts.map(a=>a.accountType).filter(Boolean)).size);
- $('accountsTable').innerHTML=l.length?l.map(a=>`<tr>
- <td><div class="cellmain">${safe(a.accountNumber||'—')}</div><div class="muted">${safe(a.accountHolderName||a.accountName||'—')}</div></td>
- <td>${safe(a.accountType||'—')}</td><td>${safe(a.branchName||'—')}</td><td><strong>${money(a.balance)}</strong></td><td>${pill(a.status)}</td></tr>`).join(''):emptyRow(5,'No accounts match your search.');
-}
-function filteredTransactions(){
- const q=$('transactionSearch').value.trim().toLowerCase(),s=$('transactionStatus').value.toUpperCase();
- return state.transactions.filter(t=>[t.referenceNumber,t.description,t.transactionType,t.id].some(v=>String(v??'').toLowerCase().includes(q))&&(!s||String(t.status||'').toUpperCase()===s));
-}
-function renderTransactions(){
- const l=filteredTransactions(),total=state.transactions.reduce((s,t)=>s+(Number(t.amount)||0),0);
- $('txCount').textContent=num(state.transactions.length);
- $('txCompleted').textContent=num(state.transactions.filter(t=>String(t.status).toUpperCase()==='COMPLETED').length);
- $('txPending').textContent=num(state.transactions.filter(t=>!['COMPLETED','FAILED','CANCELLED'].includes(String(t.status).toUpperCase())).length);
- $('txValue').textContent=money(total);
- $('transactionsTable').innerHTML=l.length?l.map(t=>`<tr>
- <td><div class="cellmain">${safe(t.referenceNumber||`TXN-${t.id}`)}</div><div class="muted">ID ${safe(t.id??'—')}</div></td>
- <td>${safe(t.description||'—')}</td><td>${safe(t.transactionType||'—')}</td><td><strong>${money(t.amount)}</strong></td><td>${pill(t.status)}</td><td>${dateText(t.createdAt)}</td></tr>`).join(''):emptyRow(6,'No transactions match your search.');
-}
-function filteredBranches(){
- const q=$('branchSearch').value.trim().toLowerCase();
- return state.branches.filter(b=>[b.name,b.branchCode,b.location].some(v=>String(v||'').toLowerCase().includes(q)));
-}
-function renderBranches(){
- const l=filteredBranches();
- $('brCount').textContent=num(state.branches.length);
- $('brActive').textContent=num(state.branches.filter(b=>b.active===true||String(b.active).toLowerCase()==='true').length);
- $('brAccounts').textContent=num(state.accounts.filter(a=>a.accountNumber!=='ACH-CLEARING').length);
- const used=new Set(state.accounts.map(a=>String(a.branchId)));
- $('brCoverage').textContent=num(state.branches.filter(b=>used.has(String(b.id))).length);
- $('branchesTable').innerHTML=l.length?l.map(b=>`<tr><td><div class="cellmain">${safe(b.name||'—')}</div></td>
- <td>${safe(b.branchCode||'—')}</td><td>${safe(b.location||'—')}</td>
- <td>${num(state.accounts.filter(a=>String(a.branchId)===String(b.id)).length)}</td><td>${pill(b.active?'ACTIVE':'INACTIVE')}</td></tr>`).join(''):emptyRow(5,'No branches match your search.');
-}
-function renderActivityPage(){
- const t=state.transactions,total=t.reduce((s,x)=>s+(Number(x.amount)||0),0);
- $('actCount').textContent=num(t.length);
- $('actCompleted').textContent=num(t.filter(x=>String(x.status).toUpperCase()==='COMPLETED').length);
- $('actAverage').textContent=money(t.length?total/t.length:0);
- $('actTotal').textContent=money(total);
- renderChart(t,'activityChart','activityChartCount');
- renderActivityList(t,'activityList',20);
-}
-function trialAccounts(){
- const r=state.trial;
- if(Array.isArray(r.accounts))return r.accounts;
- if(Array.isArray(r.entries))return r.entries;
- if(Array.isArray(r.data))return r.data;
- if(Array.isArray(r.data?.accounts))return r.data.accounts;
- return [];
-}
-function renderTrial(){
- const r=state.trial||{},l=trialAccounts(),q=$('trialSearch').value.trim().toLowerCase();
- const f=l.filter(a=>[a.accountNumber,a.accountName,a.name].some(v=>String(v||'').toLowerCase().includes(q)));
- const total=Number(r.totalSystemBalance??r.totalBalance??l.reduce((s,a)=>s+amount(a),0))||0;
- $('trialCount').textContent=num(l.length);$('trialTotal').textContent=money(total);
- $('trialPositive').textContent=num(l.filter(a=>amount(a)>0).length);
- $('trialNegative').textContent=num(l.filter(a=>amount(a)<0).length);
- $('trialTable').innerHTML=f.length?f.map(a=>`<tr><td>${safe(a.accountNumber||'—')}</td>
- <td><div class="cellmain">${safe(a.accountName||a.name||'—')}</div></td>
- <td><strong>${money(a.balance??a.reportedBalance??a.amount)}</strong></td>
- <td>${amount(a)>0?'<span class="pill">Positive</span>':amount(a)<0?'<span class="pill bad">Negative</span>':'<span class="pill warn">Zero</span>'}</td></tr>`).join(''):emptyRow(4,l.length?'No accounts match your search.':'No ledger balances returned.');
- $('trialError').textContent=state.errors.trial?'Trial balance API error: '+state.errors.trial:'';
-}
-function renderHealth(){
- const h=state.health||{};
- $('healthApp').textContent=h.status||'UNKNOWN';
- $('healthDb').textContent=h.database||'UNKNOWN';
- $('healthTime').textContent=h.timestamp?new Date(h.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):'—';
- $('healthPassed').textContent=`${state.checks.filter(c=>c.ok).length}/${state.checks.length||'—'}`;
- $('healthSummary').textContent=state.checks.length?`${state.checks.filter(c=>c.ok).length} of ${state.checks.length} endpoint checks succeeded.`:'Click Run checks to inspect backend endpoints.';
- $('healthRows').innerHTML=state.checks.map(c=>`<div class="healthrow"><strong>${safe(c.name)}</strong><div><div class="healthurl">${safe(c.url)}</div>${c.error?`<div class="error">${safe(c.error)}</div>`:''}</div><div>${c.ok?'<span class="pill">OK</span>':'<span class="pill bad">FAILED</span>'}</div></div>`).join('');
-}
-const renderers={overview:renderOverview,accounts:renderAccounts,transactions:renderTransactions,branches:renderBranches,activity:renderActivityPage,trial:renderTrial,health:renderHealth};
-function showPage(page,changeHash=true){
- if(!meta[page])page='overview';
- document.querySelectorAll('.page').forEach(el=>el.classList.toggle('hidden',el.id!=='page-'+page));
- document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
- $('crumb').textContent='BANKING OPERATIONS / '+meta[page][0].toUpperCase();
- $('eyebrow').textContent='BANKING OPERATIONS / '+meta[page][0].toUpperCase();
- $('pageTitle').textContent=meta[page][1];$('pageDescription').textContent=meta[page][2];
- if(changeHash&&location.hash!=='#'+page)history.replaceState(null,'','#'+page);
- renderers[page]();
-}
-function setStatus(t,mode){
- $('globalStatusText').textContent=t;
- $('globalStatus').className='statusline '+(mode||'');
- $('sideStatus').textContent=mode==='ok'?'Services operational':mode==='bad'?'Service issue detected':'Checking services';
-}
-async function loadData(){
- const b=$('refreshBtn');b.disabled=true;b.textContent='↻ Loading…';
- const jobs=[
-  ['health',API.health,d=>state.health=d],
-  ['accounts',API.accounts,d=>state.accounts=unwrap(d)],
-  ['transactions',API.transactions,d=>state.transactions=unwrap(d)],
-  ['branches',API.branches,d=>state.branches=unwrap(d)],
-  ['trial',API.trial,d=>state.trial=d?.data&&!Array.isArray(d.data)?d.data:d]
- ];
- const results=await Promise.all(jobs.map(async([k,u,save])=>{
-  try{save(await getJSON(u));delete state.errors[k];return {k,ok:true};}
-  catch(e){state.errors[k]=e.message;console.error('LedgerFlow '+k,e);return {k,ok:false};}
- }));
- const failed=results.filter(x=>!x.ok).length,healthy=!state.errors.health&&String(state.health.status).toUpperCase()==='UP';
- setStatus(failed?`${failed} endpoint(s) failed — see System Health`:healthy?`Backend UP · Database ${state.health.database||'connected'}`:'Backend responded; verify health status',failed?'bad':healthy?'ok':'');
- $('updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
- b.disabled=false;b.innerHTML='↻ <span class="refresh-label">Refresh data</span>';
- Object.values(renderers).forEach(fn=>{try{fn();}catch(e){console.error('Dashboard render error:',e);}});
-}
-async function runChecks(){
- const b=$('runChecks');b.disabled=true;b.textContent='Checking…';
- const urls=[['Application health',API.health],['Accounts API',API.accounts],['Transactions API',API.transactions],['Branches API',API.branches],['Trial balance API',API.trial]];
- state.checks=await Promise.all(urls.map(async([name,url])=>{
-  try{await getJSON(url);return {name,url,ok:true};}
-  catch(e){return {name,url,ok:false,error:e.message};}
- }));
- try{state.health=await getJSON(API.health);}catch{}
- renderHealth();b.disabled=false;b.textContent='↻ Run checks';
-}
-function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"';}
-function exportCSV(filename,rows){
- if(!rows.length){alert('There is no data to export.');return;}
- const cols=[...new Set(rows.flatMap(r=>Object.keys(r)))];
- const csv=[cols.map(csvCell).join(','),...rows.map(r=>cols.map(c=>csvCell(r[c])).join(','))].join('\r\n');
- const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
- const url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+function num(v) { return new Intl.NumberFormat('en-IN').format(Number(v) || 0); }
+function safe(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
 }
 
-document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
-document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.go)));
-$('refreshBtn').addEventListener('click',loadData);
-$('runChecks').addEventListener('click',runChecks);
-$('refreshTrial').addEventListener('click',async()=>{
- try{state.trial=await getJSON(API.trial);delete state.errors.trial;}
- catch(e){state.errors.trial=e.message;}
- renderTrial();
+function dateText(v) {
+  if (!v) return '—';
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? safe(v) : d.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function timeValue(v) {
+  const n = Date.parse(v || '');
+  return Number.isFinite(n) ? n : 0;
+}
+
+function amount(a) {
+  return Number(a?.balance ?? a?.reportedBalance ?? a?.amount ?? 0) || 0;
+}
+
+async function request(url, options = {}) {
+  const res = await fetch(url, {
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', ...(options.headers || {}) },
+    cache: 'no-store',
+    ...options
+  });
+  const text = await res.text();
+  let data;
+  try { data = text ? JSON.parse(text) : {}; }
+  catch { data = { message: text }; }
+  if (!res.ok) {
+    throw new Error(data.message || `Request returned HTTP ${res.status}`);
+  }
+  return data;
+}
+
+function unwrap(d) {
+  if (Array.isArray(d)) return d;
+  if (Array.isArray(d?.data)) return d.data;
+  if (Array.isArray(d?.data?.data)) return d.data.data;
+  return [];
+}
+
+function pill(v) {
+  const s = String(v || 'UNKNOWN').toUpperCase();
+  let c = 'pill neutral';
+  if (['COMPLETED', 'ACTIVE', 'SUCCESS', 'UP', 'CONNECTED', 'TRUE', 'SETTLED'].includes(s)) c = 'pill';
+  else if (['PENDING', 'PROCESSING', 'FUNDS_RESERVED', 'UNKNOWN'].includes(s)) c = 'pill warn';
+  else if (['FAILED', 'CANCELLED', 'FROZEN', 'INACTIVE', 'DOWN'].includes(s)) c = 'pill bad';
+  return `<span class="${c}">${safe(s)}</span>`;
+}
+
+function emptyRow(n, msg) { return `<tr><td colspan="${n}" class="empty">${safe(msg)}</td></tr>`; }
+
+/* RBAC Visibility Management */
+function applyRolePermissions() {
+  const role = state.currentRole;
+  $('sideRoleText').textContent = role;
+  const isAdmin = role === 'ADMIN';
+
+  // Admin banner & controls
+  if ($('adminBanner')) $('adminBanner').classList.toggle('hidden', !isAdmin);
+  if ($('openAccountModalBtn2')) $('openAccountModalBtn2').classList.toggle('hidden', !isAdmin);
+}
+
+/* Overview Page Renderers */
+function renderOverview() {
+  $('ovAccounts').textContent = num(state.accounts.filter(a => a.accountNumber !== 'ACH-CLEARING').length);
+  $('ovBranches').textContent = num(state.branches.filter(b => b.active !== false && String(b.active).toLowerCase() !== 'false').length);
+  $('ovBalance').textContent = money(state.accounts.reduce((s, a) => s + (a.accountNumber === 'ACH-CLEARING' ? 0 : amount(a)), 0));
+  $('ovTransactions').textContent = num(state.transactions.length);
+
+  // Clearing account preview
+  const clearing = state.accounts.find(a => a.accountNumber === 'ACH-CLEARING');
+  if ($('achClearingBal')) $('achClearingBal').textContent = money(clearing ? clearing.balance : 0);
+
+  renderChart(state.transactions, 'overviewChart', 'overviewChartCount');
+  renderActivityList(state.transactions, 'overviewActivity', 5);
+
+  const rows = state.accounts.filter(a => a.accountNumber !== 'ACH-CLEARING').slice(0, 6);
+  $('overviewAccounts').innerHTML = rows.length ? rows.map(a => `
+    <tr onclick="viewAccountStatement('${safe(a.accountNumber)}')">
+      <td><div class="cellmain">${safe(a.accountNumber)}</div><div class="muted">${safe(a.accountHolderName)}</div></td>
+      <td>${safe(a.branchName || 'Main Hub')}</td>
+      <td>${safe(a.accountType)}</td>
+      <td class="num"><strong>${money(a.balance)}</strong></td>
+      <td>${pill(a.status)}</td>
+    </tr>`).join('') : emptyRow(5, 'No registered accounts returned.');
+}
+
+/* Chart */
+function renderChart(list, id, countId) {
+  const el = $(id);
+  if (!el) return;
+  const items = (Array.isArray(list) ? list : []).slice()
+    .sort((a, b) => timeValue(b.createdAt) - timeValue(a.createdAt)).slice(0, 7).reverse();
+  if ($(countId)) $(countId).textContent = `${list.length} settlement${list.length === 1 ? '' : 's'}`;
+  if (!items.length) { el.innerHTML = '<div class="empty">No recent settlement activity.</div>'; return; }
+  const max = Math.max(1, ...items.map(t => Number(t.amount) || 0));
+  el.innerHTML = `
+    <div class="axis">
+      <span>${money(max)}</span>
+      <span>${money(max * 0.5)}</span>
+      <span>₹0</span>
+    </div>
+    <div class="bars">${items.map(t => {
+      const a = Math.max(0, Number(t.amount) || 0);
+      const h = Math.max(4, (a / max) * 100);
+      return `
+        <div class="baritem" title="${safe(t.description || t.referenceNumber)}: ${money(a)}">
+          <div class="barvalue">${a >= 100000 ? (a / 100000).toFixed(1) + 'L' : a >= 1000 ? (a / 1000).toFixed(0) + 'k' : num(a)}</div>
+          <div class="bar" style="height:${h}%"></div>
+          <div class="barlabel">#${safe(t.id ?? '—')}</div>
+        </div>`;
+    }).join('')}</div>`;
+}
+
+function renderActivityList(list, id, limit = 5) {
+  const el = $(id);
+  if (!el) return;
+  const items = (Array.isArray(list) ? list : []).slice()
+    .sort((a, b) => timeValue(b.createdAt) - timeValue(a.createdAt)).slice(0, limit);
+  el.innerHTML = items.length ? items.map(t => `
+    <div class="activity">
+      <div class="activity-icon">${String(t.transactionType || '').toUpperCase() === 'TRANSFER' ? '⇄' : '↓'}</div>
+      <div class="activity-main">
+        <div class="activity-title">${safe(t.description || t.transactionType || 'Settlement')}</div>
+        <div class="activity-ref">${safe(t.referenceNumber || `TXN-${t.id}`)}</div>
+      </div>
+      <div class="activity-amount">
+        <div class="num">${money(t.amount)}</div>
+        <div class="muted">${safe(t.status || 'RECORDED')}</div>
+      </div>
+    </div>`).join('') : '<div class="empty">No recent activity recorded.</div>';
+}
+
+/* Accounts Page */
+function filteredAccounts() {
+  const q = $('accountSearch').value.trim().toLowerCase();
+  const s = $('accountStatus').value.toUpperCase();
+  return state.accounts.filter(a =>
+    [a.accountNumber, a.accountHolderName, a.branchName, a.accountType].some(v => String(v || '').toLowerCase().includes(q)) &&
+    (!s || String(a.status || '').toUpperCase() === s)
+  );
+}
+
+function renderAccounts() {
+  const l = filteredAccounts();
+  $('accFound').textContent = num(l.length);
+  $('accActive').textContent = num(state.accounts.filter(a => String(a.status).toUpperCase() === 'ACTIVE').length);
+  $('accBalance').textContent = money(l.reduce((s, a) => s + amount(a), 0));
+  $('accTypes').textContent = num(new Set(state.accounts.map(a => a.accountType).filter(Boolean)).size);
+
+  $('accountsTable').innerHTML = l.length ? l.map(a => `
+    <tr>
+      <td>
+        <div class="cellmain">${safe(a.accountNumber)}</div>
+        <div class="muted">${safe(a.accountHolderName)}</div>
+      </td>
+      <td>${safe(a.accountType)}</td>
+      <td>${safe(a.branchName || 'Main Hub')}</td>
+      <td class="num"><strong>${money(a.balance)}</strong></td>
+      <td>${pill(a.status)}</td>
+      <td>
+        <button class="btn sm" onclick="viewAccountStatement('${safe(a.accountNumber)}')">View Statement</button>
+      </td>
+    </tr>`).join('') : emptyRow(6, 'No matching accounts found.');
+}
+
+/* Transfers Page */
+function populateTransferSelectors() {
+  const src = $('transferSourceSelect');
+  const dst = $('transferDestSelect');
+  if (!src || !dst) return;
+
+  const valid = state.accounts.filter(a => a.accountNumber !== 'ACH-CLEARING');
+  const opts = valid.map(a =>
+    `<option value="${a.id}" data-acc="${a.accountNumber}">${safe(a.accountNumber)} — ${safe(a.accountHolderName)} (${money(a.balance)})</option>`
+  ).join('');
+
+  src.innerHTML = opts;
+  dst.innerHTML = opts;
+  if (valid.length > 1) dst.selectedIndex = 1;
+}
+
+function renderTransfersPage() {
+  populateTransferSelectors();
+  $('trCompletedCount').textContent = num(state.transactions.filter(t => String(t.status).toUpperCase() === 'COMPLETED').length);
+  $('trPendingCount').textContent = num(state.transactions.filter(t => !['COMPLETED', 'FAILED', 'CANCELLED'].includes(String(t.status).toUpperCase())).length);
+}
+
+/* Transactions / Ledger */
+function filteredTransactions() {
+  const q = $('transactionSearch').value.trim().toLowerCase();
+  const s = $('transactionStatus').value.toUpperCase();
+  return state.transactions.filter(t =>
+    [t.referenceNumber, t.description, t.transactionType, t.id].some(v => String(v ?? '').toLowerCase().includes(q)) &&
+    (!s || String(t.status || '').toUpperCase() === s)
+  );
+}
+
+function renderTransactions() {
+  const l = filteredTransactions();
+  const total = state.transactions.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  $('txCount').textContent = num(state.transactions.length);
+  $('txCompleted').textContent = num(state.transactions.filter(t => String(t.status).toUpperCase() === 'COMPLETED').length);
+  $('txPending').textContent = num(state.transactions.filter(t => !['COMPLETED', 'FAILED', 'CANCELLED'].includes(String(t.status).toUpperCase())).length);
+  $('txValue').textContent = money(total);
+
+  $('transactionsTable').innerHTML = l.length ? l.map(t => `
+    <tr>
+      <td>
+        <div class="cellmain">${safe(t.referenceNumber || `TXN-${t.id}`)}</div>
+        <div class="muted">Entry #${safe(t.id)}</div>
+      </td>
+      <td>${safe(t.description || 'Core transfer')}</td>
+      <td>${safe(t.transactionType || 'TRANSFER')}</td>
+      <td class="num"><strong>${money(t.amount)}</strong></td>
+      <td>${pill(t.status)}</td>
+      <td class="muted">${dateText(t.createdAt)}</td>
+    </tr>`).join('') : emptyRow(6, 'No transactions matching filter criteria.');
+}
+
+/* Branches */
+function filteredBranches() {
+  const q = $('branchSearch').value.trim().toLowerCase();
+  return state.branches.filter(b => [b.name, b.branchCode, b.location].some(v => String(v || '').toLowerCase().includes(q)));
+}
+
+function renderBranches() {
+  const l = filteredBranches();
+  $('brCount').textContent = num(state.branches.length);
+  $('brActive').textContent = num(state.branches.filter(b => b.active === true || String(b.active).toLowerCase() === 'true').length);
+  $('brAccounts').textContent = num(state.accounts.filter(a => a.accountNumber !== 'ACH-CLEARING').length);
+  const used = new Set(state.accounts.map(a => String(a.branchId)));
+  $('brCoverage').textContent = num(state.branches.filter(b => used.has(String(b.id))).length);
+
+  $('branchesTable').innerHTML = l.length ? l.map(b => `
+    <tr>
+      <td><div class="cellmain">${safe(b.name)}</div></td>
+      <td style="font-family: monospace;">${safe(b.branchCode)}</td>
+      <td>${safe(b.location || 'Central Desk')}</td>
+      <td class="num">${num(state.accounts.filter(a => String(a.branchId) === String(b.id)).length)}</td>
+      <td>${pill(b.active ? 'ACTIVE' : 'INACTIVE')}</td>
+    </tr>`).join('') : emptyRow(5, 'No branches found.');
+}
+
+/* Trial Balance */
+function trialAccounts() {
+  const r = state.trial;
+  if (Array.isArray(r.accounts)) return r.accounts;
+  if (Array.isArray(r.entries)) return r.entries;
+  if (Array.isArray(r.data)) return r.data;
+  if (Array.isArray(r.data?.accounts)) return r.data.accounts;
+  return [];
+}
+
+function renderTrial() {
+  const r = state.trial || {};
+  const l = trialAccounts();
+  const q = $('trialSearch').value.trim().toLowerCase();
+  const f = l.filter(a => [a.accountNumber, a.accountName, a.name].some(v => String(v || '').toLowerCase().includes(q)));
+  const total = Number(r.totalSystemBalance ?? r.totalBalance ?? l.reduce((s, a) => s + amount(a), 0)) || 0;
+
+  $('trialCount').textContent = num(l.length);
+  $('trialTotal').textContent = money(total);
+  $('trialPositive').textContent = num(l.filter(a => amount(a) > 0).length);
+  $('trialNegative').textContent = num(l.filter(a => amount(a) < 0).length);
+
+  $('trialTable').innerHTML = f.length ? f.map(a => `
+    <tr>
+      <td style="font-family:monospace;">${safe(a.accountNumber)}</td>
+      <td><div class="cellmain">${safe(a.accountName || a.name)}</div></td>
+      <td class="num"><strong>${money(a.balance ?? a.reportedBalance ?? a.amount)}</strong></td>
+      <td>${amount(a) > 0 ? '<span class="pill">Credit (Solvent)</span>' : amount(a) < 0 ? '<span class="pill bad">Debit (Deficit)</span>' : '<span class="pill warn">Equilibrium</span>'}</td>
+    </tr>`).join('') : emptyRow(4, l.length ? 'No accounts match filter.' : 'Trial balance calculating…');
+}
+
+/* System Health */
+function renderHealth() {
+  const h = state.health || {};
+  $('healthApp').textContent = h.status || 'UNKNOWN';
+  $('healthDb').textContent = h.database || 'UNKNOWN';
+  $('healthTime').textContent = h.timestamp ? new Date(h.timestamp).toLocaleTimeString('en-IN') : '—';
+  $('healthPassed').textContent = `${state.checks.filter(c => c.ok).length}/${state.checks.length || '—'}`;
+  $('healthSummary').textContent = state.checks.length ? `${state.checks.filter(c => c.ok).length} of ${state.checks.length} service endpoints online.` : 'Click Probe Endpoints to test database and REST APIs.';
+
+  $('healthRows').innerHTML = state.checks.map(c => `
+    <div class="healthrow">
+      <strong>${safe(c.name)}</strong>
+      <div>
+        <div class="healthurl">${safe(c.url)}</div>
+        ${c.error ? `<div style="color:var(--crimson); font-size:11px;">${safe(c.error)}</div>` : ''}
+      </div>
+      <div>${c.ok ? '<span class="pill">ONLINE</span>' : '<span class="pill bad">FAILED</span>'}</div>
+    </div>`).join('');
+}
+
+const renderers = {
+  overview: renderOverview,
+  transfers: renderTransfersPage,
+  accounts: renderAccounts,
+  trial: renderTrial,
+  transactions: renderTransactions,
+  branches: renderBranches,
+  health: renderHealth
+};
+
+function showPage(page, changeHash = true) {
+  if (!meta[page]) page = 'overview';
+  document.querySelectorAll('.page').forEach(el => el.classList.toggle('hidden', el.id !== 'page-' + page));
+  document.querySelectorAll('[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  $('crumb').textContent = 'OPERATIONS / ' + meta[page][0].toUpperCase();
+  $('pageTitle').textContent = meta[page][1];
+  $('pageDescription').textContent = meta[page][2];
+  if (changeHash && location.hash !== '#' + page) history.replaceState(null, '', '#' + page);
+  renderers[page]();
+}
+
+function setStatus(t, mode) {
+  $('globalStatusText').textContent = t;
+  $('globalStatus').className = 'statusline ' + (mode || '');
+  $('sideStatus').textContent = mode === 'ok' ? 'Services Operational' : mode === 'bad' ? 'Service issue detected' : 'Synchronizing';
+  $('sidePill').className = mode === 'bad' ? 'pill bad' : 'pill';
+  $('sidePill').textContent = mode === 'bad' ? 'DEGRADED' : 'ONLINE';
+}
+
+async function loadData() {
+  const b = $('refreshBtn');
+  b.disabled = true;
+  b.textContent = '↻ Syncing…';
+
+  const jobs = [
+    ['health', API.health, d => state.health = d],
+    ['accounts', API.accounts, d => state.accounts = unwrap(d)],
+    ['transactions', API.transactions, d => state.transactions = unwrap(d)],
+    ['branches', API.branches, d => state.branches = unwrap(d)],
+    ['trial', API.trial, d => state.trial = d?.data && !Array.isArray(d.data) ? d.data : d]
+  ];
+
+  const results = await Promise.all(jobs.map(async ([k, u, save]) => {
+    try {
+      const data = await request(u);
+      save(data);
+      delete state.errors[k];
+      return { k, ok: true };
+    } catch (e) {
+      state.errors[k] = e.message;
+      return { k, ok: false };
+    }
+  }));
+
+  const failed = results.filter(x => !x.ok).length;
+  const healthy = !state.errors.health && String(state.health.status).toUpperCase() === 'UP';
+  setStatus(failed ? `${failed} endpoint probe failed` : healthy ? `PostgreSQL Connected · Ledger Invariant Maintained` : 'Reconnected', failed ? 'bad' : healthy ? 'ok' : '');
+  $('updated').textContent = 'Last synced ' + new Date().toLocaleTimeString('en-IN');
+  b.disabled = false;
+  b.textContent = '↻ Refresh';
+
+  applyRolePermissions();
+  Object.values(renderers).forEach(fn => { try { fn(); } catch (e) { console.error(e); } });
+}
+
+/* ==========================================================================
+   Interactive Operations: Transfers, ACH Settlement & Statements
+   ========================================================================== */
+
+/* Execute Real-time or ACH Transfer */
+$('executeTransferBtn').addEventListener('click', async () => {
+  const btn = $('executeTransferBtn');
+  const fb = $('transferFeedback');
+  const type = $('transferTypeSelect').value;
+  const srcId = Number($('transferSourceSelect').value);
+  const dstId = Number($('transferDestSelect').value);
+  const amt = parseFloat($('transferAmount').value);
+  const desc = $('transferDesc').value.trim() || (type === 'RTGS' ? 'Instant RTGS fund transfer' : 'ACH batch settlement transfer');
+
+  if (srcId === dstId) {
+    fb.innerHTML = '<span style="color:var(--crimson);">Source and destination accounts must be different.</span>';
+    return;
+  }
+  if (!amt || amt <= 0) {
+    fb.innerHTML = '<span style="color:var(--crimson);">Please specify a valid transfer amount greater than 0.</span>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Processing transaction…';
+  fb.innerHTML = '<span class="muted">Acquiring pessimistic row lock and posting ledger entries…</span>';
+
+  try {
+    if (type === 'RTGS') {
+      const res = await request(API.transfers, {
+        method: 'POST',
+        body: JSON.stringify({ sourceAccountId: srcId, destinationAccountId: dstId, amount: amt, description: desc })
+      });
+      fb.innerHTML = `<span style="color:var(--emerald);">✓ Transfer posted: Ref ${safe(res.data?.referenceNumber || 'TXN')} — Debited source &amp; Credited destination.</span>`;
+    } else {
+      const res = await request(API.achTransfers, {
+        method: 'POST',
+        body: JSON.stringify({ sourceAccountId: srcId, destinationAccountId: dstId, amount: amt })
+      });
+      fb.innerHTML = `<span style="color:var(--amber);">✓ ACH Transfer registered (Batch #${safe(res.batchId)}): Funds held in ACH-CLEARING.</span>`;
+    }
+    $('transferAmount').value = '';
+    await loadData();
+  } catch (err) {
+    fb.innerHTML = `<span style="color:var(--crimson);">Transfer failed: ${safe(err.message)}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Post Double-Entry Transfer';
+  }
 });
-$('accountSearch').addEventListener('input',renderAccounts);
-$('accountStatus').addEventListener('change',renderAccounts);
-$('transactionSearch').addEventListener('input',renderTransactions);
-$('transactionStatus').addEventListener('change',renderTransactions);
-$('branchSearch').addEventListener('input',renderBranches);
-$('trialSearch').addEventListener('input',renderTrial);
-$('exportAccounts').addEventListener('click',()=>exportCSV('ledgerflow-accounts.csv',filteredAccounts().map(a=>({'Account number':a.accountNumber,'Account holder':a.accountHolderName,'Type':a.accountType,'Branch':a.branchName,'Balance':a.balance,'Status':a.status}))));
-$('exportTransactions').addEventListener('click',()=>exportCSV('ledgerflow-transactions.csv',filteredTransactions().map(t=>({'Reference':t.referenceNumber,'Description':t.description,'Type':t.transactionType,'Amount':t.amount,'Status':t.status,'Created':t.createdAt}))));
-$('exportBranches').addEventListener('click',()=>exportCSV('ledgerflow-branches.csv',filteredBranches().map(b=>({'Name':b.name,'Code':b.branchCode,'Location':b.location,'Active':b.active}))));
-$('exportTrial').addEventListener('click',()=>exportCSV('ledgerflow-trial-balance.csv',trialAccounts().map(a=>({'Account number':a.accountNumber,'Account name':a.accountName||a.name,'Balance':a.balance??a.reportedBalance??a.amount}))));
-window.addEventListener('hashchange',()=>showPage(location.hash.slice(1)||'overview',false));
-showPage(location.hash.slice(1)||'overview',false);
+
+/* Settle Open ACH Batch */
+async function triggerBatchSettlement() {
+  const resultBox = $('nettingResultBox');
+  if (resultBox) resultBox.innerHTML = '<div class="muted">Executing ACH Saga settlement engine…</div>';
+
+  try {
+    const res = await request(API.achSettle, { method: 'POST' });
+    const msg = typeof res === 'string' ? res : res.message || 'Batch settled successfully.';
+    alert('Settlement Result: ' + msg);
+    await loadData();
+    await viewNettingReport(1);
+  } catch (err) {
+    alert('Settlement Engine Error: ' + err.message);
+  }
+}
+
+$('settleBatchBtn')?.addEventListener('click', triggerBatchSettlement);
+$('directSettleBtn')?.addEventListener('click', triggerBatchSettlement);
+
+/* View Netting Report */
+async function viewNettingReport(batchId = 1) {
+  const box = $('nettingResultBox');
+  if (!box) return;
+  box.innerHTML = '<div class="muted">Calculating branch settlement netting positions…</div>';
+
+  try {
+    const report = await request(API.achNetting(batchId));
+    let html = `<div style="background:var(--bg-elevated); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+      <div style="font-size:11px; font-weight:700; color:var(--amber); margin-bottom:6px;">INTER-BRANCH NETTING POSITION (BATCH #${batchId})</div>`;
+    const entries = Object.entries(report);
+    if (!entries.length) {
+      html += `<div class="muted">No cross-branch claims in this batch.</div>`;
+    } else {
+      entries.forEach(([branch, val]) => {
+        const n = Number(val) || 0;
+        html += `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border-subtle); font-size:12px;">
+          <span>${safe(branch)}</span>
+          <strong class="num" style="color:${n >= 0 ? 'var(--emerald)' : 'var(--crimson)'}">${money(n)}</strong>
+        </div>`;
+      });
+    }
+    html += `</div>`;
+    box.innerHTML = html;
+  } catch (err) {
+    box.innerHTML = `<div style="color:var(--crimson); font-size:11.5px;">Netting report: ${safe(err.message)}</div>`;
+  }
+}
+
+$('viewNettingBtn')?.addEventListener('click', () => viewNettingReport(1));
+$('directNettingBtn')?.addEventListener('click', () => viewNettingReport(1));
+
+/* View Account Statement Modal */
+window.viewAccountStatement = async function(accNumber) {
+  const modal = $('statementModal');
+  modal.classList.remove('hidden');
+  $('stmtTitle').textContent = `Account Statement`;
+  $('stmtSub').textContent = accNumber;
+  $('stmtTable').innerHTML = emptyRow(5, 'Querying immutable double-entry ledger…');
+
+  try {
+    const data = await request(API.statements(accNumber));
+    $('stmtHolder').textContent = data.accountName || 'Customer';
+    $('stmtBalance').textContent = money(data.currentBalance);
+
+    const entries = Array.isArray(data.entries) ? data.entries : [];
+    $('stmtTable').innerHTML = entries.length ? entries.map(e => `
+      <tr>
+        <td class="muted">${safe(e.postedAt)}</td>
+        <td>${safe(e.transactionType || 'TRANSFER')}</td>
+        <td>${e.entryType === 'CREDIT' ? '<span class="pill">CREDIT</span>' : '<span class="pill bad">DEBIT</span>'}</td>
+        <td class="num"><strong>${money(e.amount)}</strong></td>
+        <td class="num">${money(e.runningBalance)}</td>
+      </tr>`).join('') : emptyRow(5, 'No ledger postings found for this account.');
+  } catch (err) {
+    $('stmtTable').innerHTML = emptyRow(5, 'Statement lookup: ' + err.message);
+  }
+};
+
+$('closeStatementModal').addEventListener('click', () => $('statementModal').classList.add('hidden'));
+
+/* Open New Account Modal */
+function populateBranchSelector() {
+  const sel = $('newAccountBranch');
+  if (!sel) return;
+  sel.innerHTML = state.branches.filter(b => b.active !== false).map(b =>
+    `<option value="${b.id}">${safe(b.name)} (${safe(b.branchCode)})</option>`
+  ).join('');
+}
+
+function openAccountModal() {
+  populateBranchSelector();
+  $('newAccountFeedback').innerHTML = '';
+  $('accountModal').classList.remove('hidden');
+}
+
+$('openAccountModalBtn')?.addEventListener('click', openAccountModal);
+$('openAccountModalBtn2')?.addEventListener('click', openAccountModal);
+$('closeAccountModal').addEventListener('click', () => $('accountModal').classList.add('hidden'));
+$('cancelAccountBtn').addEventListener('click', () => $('accountModal').classList.add('hidden'));
+
+$('submitNewAccountBtn').addEventListener('click', async () => {
+  const name = $('newAccountHolder').value.trim();
+  const type = $('newAccountType').value;
+  const branchId = Number($('newAccountBranch').value);
+  const balance = parseFloat($('newAccountDeposit').value);
+  const fb = $('newAccountFeedback');
+
+  if (!name) {
+    fb.innerHTML = '<span style="color:var(--crimson);">Account holder name is required.</span>';
+    return;
+  }
+  if (isNaN(balance) || balance < 0) {
+    fb.innerHTML = '<span style="color:var(--crimson);">Initial deposit must be 0 or greater.</span>';
+    return;
+  }
+
+  fb.innerHTML = '<span class="muted">Creating account and posting initial ledger entry…</span>';
+
+  try {
+    const res = await request(API.accounts, {
+      method: 'POST',
+      body: JSON.stringify({ accountHolderName: name, accountType: type, initialBalance: balance, branchId })
+    });
+    alert(`Account Created! Identifier: ${res.data?.accountNumber || 'ACC'}`);
+    $('accountModal').classList.add('hidden');
+    $('newAccountHolder').value = '';
+    $('newAccountDeposit').value = '';
+    await loadData();
+    showPage('accounts');
+  } catch (err) {
+    fb.innerHTML = `<span style="color:var(--crimson);">${safe(err.message)}</span>`;
+  }
+});
+
+/* Role Switcher (RBAC) */
+$('roleSwitcher').addEventListener('change', e => {
+  state.currentRole = e.target.value;
+  applyRolePermissions();
+});
+
+/* Diagnostic Check Runner */
+async function runChecks() {
+  const b = $('runChecks');
+  b.disabled = true;
+  b.textContent = 'Probing…';
+  const urls = [
+    ['Core Health', API.health],
+    ['Accounts Service', API.accounts],
+    ['Audit Transactions', API.transactions],
+    ['Branch Network', API.branches],
+    ['Trial Balance Engine', API.trial]
+  ];
+  state.checks = await Promise.all(urls.map(async ([name, url]) => {
+    try {
+      await request(url);
+      return { name, url, ok: true };
+    } catch (e) {
+      return { name, url, ok: false, error: e.message };
+    }
+  }));
+  renderHealth();
+  b.disabled = false;
+  b.textContent = '↻ Probe Endpoints';
+}
+
+/* CSV Exporter */
+function csvCell(v) { return '"' + String(v ?? '').replace(/"/g, '""') + '"'; }
+function exportCSV(filename, rows) {
+  if (!rows.length) { alert('No data available to export.'); return; }
+  const cols = [...new Set(rows.flatMap(r => Object.keys(r)))];
+  const csv = [cols.map(csvCell).join(','), ...rows.map(r => cols.map(c => csvCell(r[c])).join(','))].join('\r\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* Event Bindings */
+document.querySelectorAll('[data-page]').forEach(b => b.addEventListener('click', () => showPage(b.dataset.page)));
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => showPage(b.dataset.go)));
+$('refreshBtn').addEventListener('click', loadData);
+$('openTransferModalBtn').addEventListener('click', () => showPage('transfers'));
+$('runChecks').addEventListener('click', runChecks);
+$('refreshTrial').addEventListener('click', async () => {
+  try {
+    state.trial = await request(API.trial);
+    delete state.errors.trial;
+  } catch (e) {
+    state.errors.trial = e.message;
+  }
+  renderTrial();
+});
+
+$('accountSearch').addEventListener('input', renderAccounts);
+$('accountStatus').addEventListener('change', renderAccounts);
+$('transactionSearch').addEventListener('input', renderTransactions);
+$('transactionStatus').addEventListener('change', renderTransactions);
+$('branchSearch').addEventListener('input', renderBranches);
+$('trialSearch').addEventListener('input', renderTrial);
+
+$('exportAccounts').addEventListener('click', () => exportCSV('ledgerflow-accounts.csv', filteredAccounts().map(a => ({
+  'Account Number': a.accountNumber, 'Account Holder': a.accountHolderName, 'Type': a.accountType, 'Branch': a.branchName, 'Balance': a.balance, 'Status': a.status
+}))));
+$('exportTransactions').addEventListener('click', () => exportCSV('ledgerflow-transactions.csv', filteredTransactions().map(t => ({
+  'Reference': t.referenceNumber, 'Description': t.description, 'Type': t.transactionType, 'Amount': t.amount, 'Status': t.status, 'Created': t.createdAt
+}))));
+$('exportBranches').addEventListener('click', () => exportCSV('ledgerflow-branches.csv', filteredBranches().map(b => ({
+  'Name': b.name, 'Code': b.branchCode, 'Location': b.location, 'Active': b.active
+}))));
+$('exportTrial').addEventListener('click', () => exportCSV('ledgerflow-trial-balance.csv', trialAccounts().map(a => ({
+  'Account Number': a.accountNumber, 'Account Title': a.accountName || a.name, 'Balance': a.balance ?? a.reportedBalance ?? a.amount
+}))));
+
+window.addEventListener('hashchange', () => showPage(location.hash.slice(1) || 'overview', false));
+showPage(location.hash.slice(1) || 'overview', false);
 loadData();
 </script>
 </body>

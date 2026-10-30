@@ -1,14 +1,14 @@
 services:
-  # PostgreSQL database for LedgerFlow
+  # PostgreSQL database for LedgerFlow (Relational Paradigm: Core Ledger & ACID Transfers)
   postgres:
     image: postgres:16-alpine
     container_name: ledgerflow-postgres
     environment:
       POSTGRES_DB: ledgerflow           # Database name
       POSTGRES_USER: ledgerflow         # Username
-      POSTGRES_PASSWORD: ledgerflow123  # Password (fine for local dev only!)
+      POSTGRES_PASSWORD: ledgerflow123  # Password (local dev only)
     ports:
-      - "5433:5432"                     # Maps container port 5432 to your machine's port 5433 (avoids conflict with local PostgreSQL)
+      - "5433:5432"                     # Maps container port 5432 to host port 5433
     volumes:
       - pgdata:/var/lib/postgresql/data # Persists data across container restarts
     healthcheck:
@@ -17,6 +17,19 @@ services:
       timeout: 5s
       retries: 5
 
-# Named volume for persistent PostgreSQL data
+  # MongoDB NoSQL database for LedgerFlow (Document Paradigm: Compliance Audit Logs & Settlement Receipts)
+  mongodb:
+    image: mongo:7.0
+    container_name: ledgerflow-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"                   # Standard MongoDB port
+    environment:
+      MONGO_INITDB_DATABASE: ledgerflow_audit
+    volumes:
+      - mongodata:/data/db
+
+# Named volumes for persistent database storage
 volumes:
   pgdata:
+  mongodata:
