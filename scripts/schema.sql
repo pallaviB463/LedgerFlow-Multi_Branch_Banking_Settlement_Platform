@@ -226,3 +226,4 @@ CREATE TRIGGER trg_enforce_account_balance
     BEFORE UPDATE OF balance ON accounts
     FOR EACH ROW
     EXECUTE FUNCTION fn_enforce_account_balance();
+
