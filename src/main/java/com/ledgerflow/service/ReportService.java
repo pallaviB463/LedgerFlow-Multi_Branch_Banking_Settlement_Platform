@@ -6,12 +6,14 @@ import com.ledgerflow.entity.LedgerEntry;
 import com.ledgerflow.exception.ResourceNotFoundException;
 import com.ledgerflow.repository.AccountRepository;
 import com.ledgerflow.repository.LedgerEntryRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,10 +21,32 @@ public class ReportService {
 
     private final AccountRepository accountRepository;
     private final LedgerEntryRepository ledgerEntryRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public ReportService(AccountRepository accountRepository, LedgerEntryRepository ledgerEntryRepository) {
+    public ReportService(AccountRepository accountRepository, 
+                         LedgerEntryRepository ledgerEntryRepository,
+                         JdbcTemplate jdbcTemplate) {
         this.accountRepository = accountRepository;
         this.ledgerEntryRepository = ledgerEntryRepository;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Queries the database SQL View 'v_trial_balance' directly.
+     * Demonstrates Section 7: Advanced SQL Views.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getTrialBalanceFromSqlView() {
+        return jdbcTemplate.queryForList("SELECT * FROM v_trial_balance ORDER BY branch_name, account_number");
+    }
+
+    /**
+     * Queries the database SQL View 'v_branch_settlement_summary' directly.
+     * Demonstrates Section 7: Advanced SQL Views.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getBranchSummaryFromSqlView() {
+        return jdbcTemplate.queryForList("SELECT * FROM v_branch_settlement_summary ORDER BY branch_name");
     }
 
     /**
@@ -45,10 +69,6 @@ public class ReportService {
             );
         }).collect(Collectors.toList());
 
-        // Note: For a pure double-entry system, the sum of all debits and credits is 0.
-        // If we strictly sum all balances (Asset - Liability), the net should be 0.
-        // We will just sum them up. If an account type is ASSET, it's positive. If LIABILITY, it's negative.
-        // In our simple system, we just use the raw balances.
         for (ReportDto.AccountBalance ab : accountBalances) {
             totalSystemBalance = totalSystemBalance.add(ab.getBalance());
         }
