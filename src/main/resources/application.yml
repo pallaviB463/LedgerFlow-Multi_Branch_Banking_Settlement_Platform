@@ -9,7 +9,7 @@ spring:
   application:
     name: LedgerFlow
 
-  # ----- Database (PostgreSQL) -----
+  # ----- Database 1: Relational Paradigm (PostgreSQL) -----
   datasource:
     url: jdbc:postgresql://localhost:5433/ledgerflow
     username: ledgerflow
@@ -18,21 +18,23 @@ spring:
 
   # ----- JPA / Hibernate -----
   jpa:
-    # Disable open-in-view to prevent lazy loading issues and suppress Spring warning
     open-in-view: false
     hibernate:
-      # 'update' auto-creates/updates tables based on entity classes.
-      # Good for development. In production, use 'validate' + migration tool.
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ----- Database 2: NoSQL Document Paradigm (MongoDB) -----
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/ledgerflow_audit}
+      auto-index-creation: true
 
 # ----- Logging -----
 logging:
   level:
     root: INFO
     com.ledgerflow: DEBUG
-    org.hibernate.SQL: DEBUG

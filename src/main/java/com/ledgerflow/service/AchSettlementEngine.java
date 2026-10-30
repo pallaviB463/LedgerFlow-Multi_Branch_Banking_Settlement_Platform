@@ -12,10 +12,12 @@ import com.ledgerflow.repository.AchBatchRepository;
 import com.ledgerflow.repository.AchTransferRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,52 +32,53 @@ public class AchSettlementEngine {
     private final AchTransferRepository achTransferRepository;
     private final AccountRepository accountRepository;
     private final TransferService transferService;
+    private final AuditService auditService;
 
     public AchSettlementEngine(AchBatchRepository achBatchRepository,
                                AchTransferRepository achTransferRepository,
                                AccountRepository accountRepository,
-                               TransferService transferService) {
+                               TransferService transferService,
+                               @Autowired(required = false) AuditService auditService) {
         this.achBatchRepository = achBatchRepository;
         this.achTransferRepository = achTransferRepository;
         this.accountRepository = accountRepository;
         this.transferService = transferService;
+        this.auditService = auditService;
     }
 
     /**
      * SAGA STEP 2 & COMPENSATION.
      * Processes an entire ACH batch. Uses pessimistic locking to prevent concurrent processing.
+     * Generates immutable NoSQL Clearing Receipts in MongoDB upon settlement.
      */
     @Transactional
     public void processBatch(Long batchId) {
         log.info("Starting settlement for ACH Batch {}", batchId);
 
-        // 1. Lock the batch
         AchBatch batch = achBatchRepository.findByIdWithLock(batchId)
-                .orElseThrow(() -> new ResourceNotFoundException("Batch not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("ACH Batch not found with id: " + batchId));
 
         if (batch.getStatus() != AchBatch.BatchStatus.OPEN) {
-            throw new InvalidOperationException("Can only process OPEN batches");
+            throw new InvalidOperationException("Cannot settle batch " + batchId + " because status is " + batch.getStatus());
         }
 
         batch.setStatus(AchBatch.BatchStatus.PROCESSING);
         achBatchRepository.save(batch);
 
         Account clearingAccount = accountRepository.findByAccountNumber(CLEARING_ACCOUNT_NUMBER)
-                .orElseThrow(() -> new ResourceNotFoundException("ACH Clearing account not found"));
+                .orElseThrow(() -> new IllegalStateException("System clearing account not found: " + CLEARING_ACCOUNT_NUMBER));
 
         List<AchTransfer> transfers = achTransferRepository.findByBatchId(batchId);
-        
+        List<Map<String, Object>> settledReceipts = new ArrayList<>();
+
         for (AchTransfer transfer : transfers) {
             if (transfer.getStatus() != AchTransfer.TransferStatus.FUNDS_RESERVED) {
-                continue; // Skip already processed or failed
+                log.info("Skipping transfer {} because status is {}", transfer.getId(), transfer.getStatus());
+                continue;
             }
 
             try {
-                // Saga Step 2: Try to settle to destination
-                if (transfer.getDestinationAccount().getStatus() != Account.AccountStatus.ACTIVE) {
-                    throw new InvalidOperationException("Destination account is not ACTIVE");
-                }
-
+                // Saga Step 2: Settle from CLEARING -> Destination
                 TransferDto.TransferRequest settleReq = new TransferDto.TransferRequest();
                 settleReq.setSourceAccountId(clearingAccount.getId());
                 settleReq.setDestinationAccountId(transfer.getDestinationAccount().getId());
@@ -86,6 +89,14 @@ public class AchSettlementEngine {
                 
                 transfer.setStatus(AchTransfer.TransferStatus.SETTLED);
                 log.info("ACH Transfer {} SETTLED.", transfer.getId());
+
+                settledReceipts.add(Map.of(
+                        "transferId", transfer.getId(),
+                        "source", transfer.getSourceAccount().getAccountNumber(),
+                        "destination", transfer.getDestinationAccount().getAccountNumber(),
+                        "amount", transfer.getAmount(),
+                        "status", "SETTLED"
+                ));
                 
             } catch (Exception e) {
                 log.warn("ACH Transfer {} failed to settle. Reason: {}. Initiating Compensation...", 
@@ -105,11 +116,24 @@ public class AchSettlementEngine {
                     transfer.setStatus(AchTransfer.TransferStatus.COMPENSATED);
                     transfer.setErrorMessage(e.getMessage());
                     log.info("ACH Transfer {} COMPENSATED.", transfer.getId());
+
+                    if (auditService != null) {
+                        auditService.logFinancialEvent(
+                                "SAGA_COMPENSATION",
+                                "ACH-COMP-" + transfer.getId(),
+                                clearingAccount.getAccountNumber(),
+                                transfer.getSourceAccount().getAccountNumber(),
+                                transfer.getAmount(),
+                                "SYS000",
+                                "SYSTEM",
+                                "SAGA_ENGINE",
+                                "WARNING",
+                                Map.of("reason", e.getMessage(), "transferId", transfer.getId())
+                        );
+                    }
                     
                 } catch (Exception compEx) {
-                    // This is a catastrophic failure (e.g. source account is also closed)
-                    // In a real system, this requires manual ops intervention.
-                    log.error("CATASTROPHIC FAILURE: Compensation for transfer {} failed! Funds are trapped in CLEARING. Reason: {}", 
+                    log.error("CATASTROPHIC FAILURE: Compensation for transfer {} failed! Reason: {}", 
                             transfer.getId(), compEx.getMessage());
                     transfer.setStatus(AchTransfer.TransferStatus.FAILED);
                     transfer.setErrorMessage("Settle failed: " + e.getMessage() + " | Comp failed: " + compEx.getMessage());
@@ -120,6 +144,23 @@ public class AchSettlementEngine {
 
         batch.setStatus(AchBatch.BatchStatus.SETTLED);
         achBatchRepository.save(batch);
+
+        // Calculate netting
+        Map<String, BigDecimal> netting = calculateBranchNetting(batchId);
+
+        // Store immutable NoSQL Clearing Receipt in MongoDB
+        if (auditService != null) {
+            auditService.storeClearingReceipt(
+                    batch.getId(),
+                    String.valueOf(batch.getId()),
+                    batch.getStatus().name(),
+                    batch.getTotalAmount(),
+                    batch.getTransactionCount(),
+                    settledReceipts,
+                    netting
+            );
+        }
+
         log.info("Finished settlement for ACH Batch {}", batchId);
     }
 
@@ -128,32 +169,28 @@ public class AchSettlementEngine {
      * Calculates the net inflow/outflow per branch for a given batch.
      * Netting is calculated ONLY for SETTLED transfers.
      */
-    @Transactional(readOnly = true)
     public Map<String, BigDecimal> calculateBranchNetting(Long batchId) {
         List<AchTransfer> transfers = achTransferRepository.findByBatchId(batchId);
-        
-        // Map of BranchCode -> Net Amount
-        // Positive means the branch receives money (inflow > outflow)
-        // Negative means the branch owes money (outflow > inflow)
-        Map<String, BigDecimal> netting = new HashMap<>();
+        Map<String, BigDecimal> branchNetPositions = new HashMap<>();
 
-        for (AchTransfer t : transfers) {
-            if (t.getStatus() != AchTransfer.TransferStatus.SETTLED) {
-                continue;
+        for (AchTransfer transfer : transfers) {
+            if (transfer.getStatus() == AchTransfer.TransferStatus.SETTLED) {
+                Branch sourceBranch = transfer.getSourceAccount().getBranch();
+                Branch destBranch = transfer.getDestinationAccount().getBranch();
+
+                String srcKey = sourceBranch.getBranchCode() + " (" + sourceBranch.getName() + ")";
+                String dstKey = destBranch.getBranchCode() + " (" + destBranch.getName() + ")";
+
+                // Source branch OUTFLOW (negative)
+                branchNetPositions.put(srcKey, 
+                        branchNetPositions.getOrDefault(srcKey, BigDecimal.ZERO).subtract(transfer.getAmount()));
+
+                // Destination branch INFLOW (positive)
+                branchNetPositions.put(dstKey, 
+                        branchNetPositions.getOrDefault(dstKey, BigDecimal.ZERO).add(transfer.getAmount()));
             }
-
-            Branch srcBranch = t.getSourceAccount().getBranch();
-            Branch destBranch = t.getDestinationAccount().getBranch();
-            
-            String srcCode = srcBranch.getBranchCode() + " (" + srcBranch.getName() + ")";
-            String destCode = destBranch.getBranchCode() + " (" + destBranch.getName() + ")";
-
-            // Decrease net for source branch
-            netting.put(srcCode, netting.getOrDefault(srcCode, BigDecimal.ZERO).subtract(t.getAmount()));
-            // Increase net for dest branch
-            netting.put(destCode, netting.getOrDefault(destCode, BigDecimal.ZERO).add(t.getAmount()));
         }
 
-        return netting;
+        return branchNetPositions;
     }
 }

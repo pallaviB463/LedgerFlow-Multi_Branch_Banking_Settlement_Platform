@@ -2,17 +2,18 @@ package com.ledgerflow;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
  * LedgerFlow Application Entry Point.
- *
- * This is the main class that starts the entire Spring Boot application.
- * The @SpringBootApplication annotation tells Spring to:
- *   1. Auto-configure based on dependencies (e.g., set up JPA, web server)
- *   2. Scan for components (controllers, services, repositories) in this package and below
- *   3. Enable Spring Boot's configuration mechanisms
+ * Configured for Polyglot Dual-Database Architecture:
+ * - SQL Paradigm (PostgreSQL): Core double-entry ledger & ACID financial operations
+ * - NoSQL Paradigm (MongoDB): Dynamic compliance audit logging & settlement receipt storage
  */
 @SpringBootApplication
+@EnableJpaRepositories(basePackages = "com.ledgerflow.repository")
+@EnableMongoRepositories(basePackages = "com.ledgerflow.mongo.repository")
 public class LedgerFlowApplication {
 
     public static void main(String[] args) {
