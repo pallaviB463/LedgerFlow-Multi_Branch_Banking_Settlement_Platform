@@ -1,7 +1,6 @@
 # LedgerFlow — Institutional Multi-Branch Core Banking & Multilateral Settlement Platform
 
-> **DBMS Experiential Learning – Level 3 Project Submission**  
-> **Course Instructor:** Dr. Nagasundari S  
+> **DBMS Experiential Learning – Level 3 Project Submission**   
 > **Project Repository:** [GitHub - LedgerFlow](https://github.com/pallaviB463/LedgerFlow-Multi_Branch_Banking_Settlement_Platform)  
 > **Branch:** `feature/ledgerflow-integration`
 
