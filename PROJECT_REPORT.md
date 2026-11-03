@@ -14,15 +14,10 @@
 
 | Sl. No. | Student Name | SRN | Semester & Section |
 | :---: | :---: | :---: | :---: |
-| 1 | Pallavi B | PES1UG22CS463 | 5th Sem, Sec 'H' |
-| 2 | Teammate Name | [SRN 2] | 5th Sem, Sec 'H' |
+| 1 | Pallavi B | PES1UG24AM906 | 5th Sem, Sec 'C' |
+| 2 | Kirthana S | PES1UG24AM136 | 5th Sem, Sec 'C' |
 
 \
-**Class of:** Prof. [Course Faculty Name]  
-**Lab Faculty:** Prof. [Lab Faculty Name]  
-**Department:** Department of Computer Science and Engineering  
-**Institution:** PES University, Bangalore – 560085  
-
 ---
 
 ## Abstract
@@ -933,12 +928,12 @@ Manager Only       Customer + Manager
 The **LedgerFlow** project demonstrates the practical application of advanced database management concepts in an enterprise financial setting. By pairing a strict ACID relational engine with a flexible document NoSQL analytics engine, the platform achieves mathematical ledger integrity while maintaining real-time compliance oversight.
 
 ### Division of Work & Contributions
-- **Student 1 (Pallavi B - PES1UG22CS463):**
+- **Student 1 (Pallavi B - PES1UG24AM906):**
   - Designed the dual-database architecture, relational E-R model, 3NF schema, and `scripts/schema.sql`.
   - Implemented the Spring Boot double-entry ledger engine, pessimistic row-locking algorithm, and SQL Views/Triggers.
   - Implemented Spring Security JWT authentication and RBAC endpoints.
   - Authored the project report and documentation.
-- **Student 2 (Teammate - [SRN 2]):**
+- **Student 2 (Kirthana S - PES1UG24AM136):**
   - Configured the MongoDB 7.0 document collections and implemented the 4-Stage Aggregation Pipeline in `ComplianceAnalyticsService`.
   - Developed the Next.js 14 web application interface and integrated frontend components with Spring Boot REST endpoints.
   - Conducted concurrency test suites (`ConcurrencyTest`, `AchSagaTest`) verifying deadlock prevention.
