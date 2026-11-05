@@ -125,34 +125,47 @@ export default function OverviewPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Branch Code</th>
-                <th>Branch Name</th>
-                <th>City</th>
+                <th>Branch</th>
+                <th>Account</th>
+                <th>Account Holder</th>
                 <th style={{ textAlign: 'right' }}>Total Debit (Outflow)</th>
                 <th style={{ textAlign: 'right' }}>Total Credit (Inflow)</th>
-                <th style={{ textAlign: 'right' }}>Net Branch Balance</th>
+                <th style={{ textAlign: 'right' }}>Net Balance</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {trialBalance.length > 0 ? (
-                trialBalance.map((row) => (
-                  <tr key={row.branchCode}>
-                    <td><strong className="font-mono">{row.branchCode}</strong></td>
-                    <td>{row.branchName}</td>
-                    <td>{row.city}</td>
-                    <td className="font-mono" style={{ textAlign: 'right', color: '#f87171' }}>
-                      ${(row.totalDebit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="font-mono" style={{ textAlign: 'right', color: '#34d399' }}>
-                      ${(row.totalCredit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="font-mono" style={{ textAlign: 'right', fontWeight: 600 }}>
-                      ${(row.netBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td><span className="badge badge-success">Balanced</span></td>
-                  </tr>
-                ))
+                trialBalance.map((row, idx) => {
+                  const bCode = row.branch_code || row.branchCode || 'BR-001';
+                  const bName = row.branch_name || row.branchName || 'Downtown';
+                  const accNum = row.account_number || row.accountNumber || `ACC-1000${idx + 1}`;
+                  const holder = row.account_holder_name || row.accountHolderName || 'Customer';
+                  const debit = parseFloat(row.total_debits ?? row.totalDebit ?? 0);
+                  const credit = parseFloat(row.total_credits ?? row.totalCredit ?? 0);
+                  const net = parseFloat(row.net_ledger_balance ?? row.netBalance ?? row.stored_balance ?? 0);
+
+                  return (
+                    <tr key={row.account_id || row.id || idx}>
+                      <td>
+                        <strong className="font-mono" style={{ color: '#38bdf8' }}>{bCode}</strong>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{bName}</div>
+                      </td>
+                      <td><span className="font-mono">{accNum}</span></td>
+                      <td>{holder}</td>
+                      <td className="font-mono" style={{ textAlign: 'right', color: '#f87171' }}>
+                        ${debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="font-mono" style={{ textAlign: 'right', color: '#34d399' }}>
+                        ${credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="font-mono" style={{ textAlign: 'right', fontWeight: 600 }}>
+                        ${net.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td><span className="badge badge-success">Balanced</span></td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-faint)', padding: '2rem' }}>
